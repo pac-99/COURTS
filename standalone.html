@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CourtCheck - Find your game. Anytime.</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-brand">
+                    <i class="fas fa-basketball-ball"></i>
+                    <span>CourtCheck</span>
+                </div>
+                <div class="nav-menu">
+                    <button class="nav-item active" data-page="map">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Map</span>
+                    </button>
+                    <button class="nav-item" data-page="profile">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
+                    </button>
+                    <button class="nav-item" data-page="analytics">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Analytics</span>
+                    </button>
+                </div>
+                <div class="nav-auth">
+                    <button id="loginBtn" class="btn btn-primary">
+                        <i class="fab fa-google"></i>
+                        Sign In
+                    </button>
+                    <div id="userMenu" class="user-menu hidden">
+                        <div class="user-info">
+                            <img id="userAvatar" src="" alt="User Avatar" class="user-avatar">
+                            <span id="userName"></span>
+                        </div>
+                        <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Map View -->
+            <div id="mapView" class="page active">
+                <div class="map-container">
+                    <div id="map" class="map"></div>
+                    <div class="map-controls">
+                        <div class="search-bar">
+                            <input type="text" id="searchInput" placeholder="Search courts or locations...">
+                            <button id="searchBtn" class="btn btn-primary">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <div class="filters">
+                            <select id="sportFilter">
+                                <option value="">All Sports</option>
+                                <option value="basketball">Basketball</option>
+                                <option value="tennis">Tennis</option>
+                                <option value="pickleball">Pickleball</option>
+                                <option value="soccer">Soccer</option>
+                                <option value="volleyball">Volleyball</option>
+                                <option value="badminton">Badminton</option>
+                            </select>
+                            <select id="statusFilter">
+                                <option value="">All Status</option>
+                                <option value="1,2">Available</option>
+                                <option value="3">Moderate</option>
+                                <option value="4,5">Busy</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="court-list">
+                    <h3>Nearby Courts</h3>
+                    <div id="courtList" class="court-cards">
+                        <!-- Court cards will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Court Detail View -->
+            <div id="courtDetailView" class="page">
+                <div class="court-detail-header">
+                    <button id="backToMap" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Map
+                    </button>
+                    <h1 id="courtDetailName"></h1>
+                </div>
+                <div class="court-detail-content">
+                    <div class="court-info">
+                        <div class="court-status">
+                            <div id="courtStatusIndicator" class="status-indicator"></div>
+                            <div class="status-info">
+                                <span id="courtStatusText"></span>
+                                <span id="courtLastUpdated"></span>
+                            </div>
+                        </div>
+                        <div class="court-details">
+                            <p id="courtDescription"></p>
+                            <div class="court-amenities">
+                                <h4>Amenities</h4>
+                                <div id="courtAmenities"></div>
+                            </div>
+                            <div class="court-hours">
+                                <h4>Operating Hours</h4>
+                                <p id="courtHours"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="court-actions">
+                        <button id="checkInBtn" class="btn btn-primary btn-large">
+                            <i class="fas fa-check-circle"></i>
+                            Check In
+                        </button>
+                        <button id="favoriteBtn" class="btn btn-secondary">
+                            <i class="fas fa-heart"></i>
+                            Add to Favorites
+                        </button>
+                    </div>
+                    <div class="court-media">
+                        <h4>Photos & Videos</h4>
+                        <div id="courtMedia" class="media-gallery"></div>
+                    </div>
+                    <div class="court-checkins">
+                        <h4>Recent Check-ins</h4>
+                        <div id="recentCheckins" class="checkin-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Check-in Modal -->
+            <div id="checkInModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Check In</h3>
+                        <button id="closeCheckInModal" class="btn btn-secondary">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="checkInForm">
+                            <div class="form-group">
+                                <label for="crowdLevel">How busy is the court?</label>
+                                <div class="crowd-level-selector">
+                                    <button type="button" class="crowd-level-btn" data-level="1">
+                                        <i class="fas fa-circle"></i>
+                                        <span>Empty</span>
+                                    </button>
+                                    <button type="button" class="crowd-level-btn" data-level="2">
+                                        <i class="fas fa-circle"></i>
+                                        <span>Light</span>
+                                    </button>
+                                    <button type="button" class="crowd-level-btn" data-level="3">
+                                        <i class="fas fa-circle"></i>
+                                        <span>Moderate</span>
+                                    </button>
+                                    <button type="button" class="crowd-level-btn" data-level="4">
+                                        <i class="fas fa-circle"></i>
+                                        <span>Busy</span>
+                                    </button>
+                                    <button type="button" class="crowd-level-btn" data-level="5">
+                                        <i class="fas fa-circle"></i>
+                                        <span>Very Busy</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="checkInComment">Comment (optional)</label>
+                                <textarea id="checkInComment" placeholder="Share your experience..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="checkInMedia">Photos/Videos (optional)</label>
+                                <input type="file" id="checkInMedia" multiple accept="image/*,video/*">
+                            </div>
+                            <div class="form-group">
+                                <label for="checkInDuration">How long did you play? (minutes)</label>
+                                <input type="number" id="checkInDuration" min="0" placeholder="e.g., 60">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-large">
+                                <i class="fas fa-check"></i>
+                                Submit Check-in
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile View -->
+            <div id="profileView" class="page">
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        <img id="profileAvatar" src="" alt="Profile Avatar">
+                    </div>
+                    <div class="profile-info">
+                        <h2 id="profileName"></h2>
+                        <p id="profileEmail"></p>
+                        <div class="profile-stats">
+                            <div class="stat">
+                                <span class="stat-value" id="profileCheckIns">0</span>
+                                <span class="stat-label">Check-ins</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-value" id="profileReputation">0</span>
+                                <span class="stat-label">Reputation</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-value" id="profileBadges">0</span>
+                                <span class="stat-label">Badges</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-content">
+                    <div class="profile-section">
+                        <h3>My Check-ins</h3>
+                        <div id="profileCheckins" class="checkin-list"></div>
+                    </div>
+                    <div class="profile-section">
+                        <h3>Favorite Courts</h3>
+                        <div id="profileFavorites" class="court-cards"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics View -->
+            <div id="analyticsView" class="page">
+                <div class="analytics-header">
+                    <h2>Court Analytics</h2>
+                    <select id="analyticsCourtSelect">
+                        <option value="">Select a court...</option>
+                    </select>
+                </div>
+                <div class="analytics-content">
+                    <div class="analytics-charts">
+                        <div class="chart-container">
+                            <h3>Busy Hours</h3>
+                            <canvas id="busyHoursChart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3>Crowd Level Distribution</h3>
+                            <canvas id="crowdDistributionChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="analytics-summary">
+                        <h3>Summary</h3>
+                        <div id="analyticsSummary" class="summary-cards"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" class="loading-spinner hidden">
+            <div class="spinner"></div>
+            <p>Loading...</p>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div id="toastContainer" class="toast-container"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Standalone CourtCheck App with Demo Data
+        class StandaloneCourtCheckApp {
+            constructor() {
+                this.currentUser = null;
+                this.currentCourt = null;
+                this.map = null;
+                this.markers = [];
+                this.courts = this.getDemoCourts();
+                this.selectedCrowdLevel = null;
+                
+                this.init();
+            }
+
+            getDemoCourts() {
+                return [
+                    {
+                        id: 'court1',
+                        name: 'Golden Gate Park Basketball Courts',
+                        description: 'Popular outdoor basketball courts in Golden Gate Park with 4 full courts and good lighting.',
+                        location: {
+                            coordinates: [-122.4612, 37.7694]
+                        },
+                        address: 'Golden Gate Park, San Francisco, CA',
+                        sportType: 'basketball',
+                        amenities: ['lighting', 'parking', 'restrooms'],
+                        operatingHours: {
+                            open: '06:00',
+                            close: '22:00'
+                        },
+                        currentStatus: {
+                            crowdLevel: 3,
+                            lastUpdated: new Date(),
+                            source: 'hybrid'
+                        },
+                        statusColor: 'yellow',
+                        statusText: 'Moderate',
+                        rating: {
+                            average: 4.2,
+                            count: 45
+                        },
+                        verified: true,
+                        images: []
+                    },
+                    {
+                        id: 'court2',
+                        name: 'Mission Dolores Tennis Courts',
+                        description: 'Well-maintained tennis courts with 6 courts available for public use.',
+                        location: {
+                            coordinates: [-122.4269, 37.7599]
+                        },
+                        address: 'Mission Dolores Park, San Francisco, CA',
+                        sportType: 'tennis',
+                        amenities: ['lighting', 'parking', 'water_fountain', 'seating'],
+                        operatingHours: {
+                            open: '07:00',
+                            close: '21:00'
+                        },
+                        currentStatus: {
+                            crowdLevel: 2,
+                            lastUpdated: new Date(),
+                            source: 'user'
+                        },
+                        statusColor: 'green',
+                        statusText: 'Light',
+                        rating: {
+                            average: 4.5,
+                            count: 32
+                        },
+                        verified: true,
+                        images: []
+                    },
+                    {
+                        id: 'court3',
+                        name: 'Presidio Pickleball Courts',
+                        description: 'New pickleball courts with 8 dedicated courts and equipment rental available.',
+                        location: {
+                            coordinates: [-122.4662, 37.7989]
+                        },
+                        address: 'Presidio, San Francisco, CA',
+                        sportType: 'pickleball',
+                        amenities: ['lighting', 'parking', 'equipment_rental', 'seating', 'shade'],
+                        operatingHours: {
+                            open: '06:00',
+                            close: '20:00'
+                        },
+                        currentStatus: {
+                            crowdLevel: 4,
+                            lastUpdated: new Date(),
+                            source: 'ai'
+                        },
+                        statusColor: 'red',
+                        statusText: 'Busy',
+                        rating: {
+                            average: 4.7,
+                            count: 28
+                        },
+                        verified: true,
+                        images: []
+                    },
+                    {
+                        id: 'court4',
+                        name: 'Balboa Park Soccer Fields',
+                        description: 'Large soccer fields perfect for pickup games and organized matches.',
+                        location: {
+                            coordinates: [-122.5042, 37.7761]
+                        },
+                        address: 'Balboa Park, San Francisco, CA',
+                        sportType: 'soccer',
+                        amenities: ['lighting', 'parking', 'restrooms', 'water_fountain'],
+                        operatingHours: {
+                            open: '06:00',
+                            close: '22:00'
+                        },
+                        currentStatus: {
+                            crowdLevel: 1,
+                            lastUpdated: new Date(),
+                            source: 'user'
+                        },
+                        statusColor: 'green',
+                        statusText: 'Empty',
+                        rating: {
+                            average: 4.0,
+                            count: 67
+                        },
+                        verified: true,
+                        images: []
+                    }
+                ];
+            }
+
+            async init() {
+                this.setupEventListeners();
+                this.setupGoogleMaps();
+                this.updateCourtList();
+                this.showPage('map');
+            }
+
+            setupEventListeners() {
+                // Navigation
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        const page = e.currentTarget.dataset.page;
+                        this.showPage(page);
+                    });
+                });
+
+                // Authentication
+                document.getElementById('loginBtn').addEventListener('click', () => {
+                    this.handleDemoLogin();
+                });
+
+                document.getElementById('logoutBtn').addEventListener('click', () => {
+                    this.logout();
+                });
+
+                // Map controls
+                document.getElementById('searchBtn').addEventListener('click', () => {
+                    this.searchCourts();
+                });
+
+                document.getElementById('searchInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.searchCourts();
+                    }
+                });
+
+                document.getElementById('sportFilter').addEventListener('change', () => {
+                    this.filterCourts();
+                });
+
+                document.getElementById('statusFilter').addEventListener('change', () => {
+                    this.filterCourts();
+                });
+
+                // Court detail
+                document.getElementById('backToMap').addEventListener('click', () => {
+                    this.showPage('map');
+                });
+
+                document.getElementById('checkInBtn').addEventListener('click', () => {
+                    this.showCheckInModal();
+                });
+
+                document.getElementById('favoriteBtn').addEventListener('click', () => {
+                    this.toggleFavorite();
+                });
+
+                // Check-in modal
+                document.getElementById('closeCheckInModal').addEventListener('click', () => {
+                    this.hideCheckInModal();
+                });
+
+                document.getElementById('checkInForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.submitCheckIn();
+                });
+
+                // Crowd level selection
+                document.querySelectorAll('.crowd-level-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        this.selectCrowdLevel(parseInt(e.currentTarget.dataset.level));
+                    });
+                });
+
+                // Analytics
+                document.getElementById('analyticsCourtSelect').addEventListener('change', () => {
+                    this.loadAnalytics();
+                });
+            }
+
+            setupGoogleMaps() {
+                // Check if Google Maps is available
+                if (typeof google === 'undefined') {
+                    console.warn('Google Maps API not loaded. Using fallback map display.');
+                    this.setupFallbackMap();
+                    return;
+                }
+
+                // Default to San Francisco
+                const defaultLocation = { lat: 37.7749, lng: -122.4194 };
+                
+                this.map = new google.maps.Map(document.getElementById('map'), {
+                    zoom: 13,
+                    center: defaultLocation,
+                    styles: [
+                        {
+                            featureType: 'poi',
+                            elementType: 'labels',
+                            stylers: [{ visibility: 'off' }]
+                        }
+                    ]
+                });
+
+                // Try to get user's location
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            const userLocation = {
+                                lat: position.coords.latitude,
+                                lng: position.coords.longitude
+                            };
+                            this.map.setCenter(userLocation);
+                            this.updateMapMarkers();
+                        },
+                        () => {
+                            this.updateMapMarkers();
+                        }
+                    );
+                } else {
+                    this.updateMapMarkers();
+                }
+            }
+
+            setupFallbackMap() {
+                const mapElement = document.getElementById('map');
+                mapElement.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center;">
+                        <div>
+                            <i class="fas fa-map-marked-alt" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                            <div style="font-size: 1.2rem; font-weight: 500;">Interactive Map View</div>
+                            <div style="font-size: 0.9rem; opacity: 0.8; margin-top: 0.5rem;">
+                                Google Maps integration (requires API key)
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            updateMapMarkers() {
+                if (!this.map) return;
+
+                // Clear existing markers
+                this.markers.forEach(marker => marker.setMap(null));
+                this.markers = [];
+
+                this.courts.forEach(court => {
+                    const marker = new google.maps.Marker({
+                        position: { lat: court.location.coordinates[1], lng: court.location.coordinates[0] },
+                        map: this.map,
+                        title: court.name,
+                        icon: this.getMarkerIcon(court.currentStatus.crowdLevel)
+                    });
+
+                    marker.addListener('click', () => {
+                        this.showCourtDetail(court);
+                    });
+
+                    this.markers.push(marker);
+                });
+            }
+
+            getMarkerIcon(crowdLevel) {
+                const colors = {
+                    1: '#10b981', // green
+                    2: '#84cc16', // light green
+                    3: '#f59e0b', // yellow
+                    4: '#f97316', // orange
+                    5: '#ef4444'  // red
+                };
+
+                return {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    fillColor: colors[crowdLevel] || colors[1],
+                    fillOpacity: 0.8,
+                    strokeColor: '#ffffff',
+                    strokeWeight: 2,
+                    scale: 8
+                };
+            }
+
+            updateCourtList() {
+                const courtList = document.getElementById('courtList');
+                courtList.innerHTML = '';
+
+                this.courts.forEach(court => {
+                    const courtCard = this.createCourtCard(court);
+                    courtList.appendChild(courtCard);
+                });
+            }
+
+            createCourtCard(court) {
+                const card = document.createElement('div');
+                card.className = 'court-card';
+                card.addEventListener('click', () => this.showCourtDetail(court));
+
+                const distance = this.calculateDistance(
+                    37.7749, -122.4194, // Default SF location
+                    court.location.coordinates[1],
+                    court.location.coordinates[0]
+                );
+
+                card.innerHTML = `
+                    <div class="court-card-header">
+                        <div>
+                            <div class="court-card-name">${court.name}</div>
+                            <div class="court-card-sport">${court.sportType}</div>
+                        </div>
+                        <div class="court-card-distance">${distance.toFixed(1)} km</div>
+                    </div>
+                    <div class="court-card-status">
+                        <div class="status-indicator ${court.statusColor}"></div>
+                        <span>${court.statusText}</span>
+                    </div>
+                `;
+
+                return card;
+            }
+
+            calculateDistance(lat1, lng1, lat2, lng2) {
+                const R = 6371; // Earth's radius in km
+                const dLat = (lat2 - lat1) * Math.PI / 180;
+                const dLng = (lng2 - lng1) * Math.PI / 180;
+                const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                        Math.sin(dLng/2) * Math.sin(dLng/2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                return R * c;
+            }
+
+            showCourtDetail(court) {
+                this.currentCourt = court;
+                this.showPage('courtDetail');
+                this.updateCourtDetailView();
+            }
+
+            updateCourtDetailView() {
+                if (!this.currentCourt) return;
+
+                document.getElementById('courtDetailName').textContent = this.currentCourt.name;
+                document.getElementById('courtDescription').textContent = this.currentCourt.description;
+                
+                const statusIndicator = document.getElementById('courtStatusIndicator');
+                statusIndicator.className = `status-indicator ${this.currentCourt.statusColor}`;
+                
+                document.getElementById('courtStatusText').textContent = this.currentCourt.statusText;
+                document.getElementById('courtLastUpdated').textContent = 
+                    `Updated ${this.formatTimeAgo(new Date(this.currentCourt.currentStatus.lastUpdated))}`;
+
+                // Update amenities
+                const amenitiesContainer = document.getElementById('courtAmenities');
+                if (this.currentCourt.amenities && this.currentCourt.amenities.length > 0) {
+                    amenitiesContainer.innerHTML = this.currentCourt.amenities
+                        .map(amenity => `<span class="amenity-tag">${amenity.replace('_', ' ')}</span>`)
+                        .join('');
+                } else {
+                    amenitiesContainer.innerHTML = '<span class="amenity-tag">No amenities listed</span>';
+                }
+
+                // Update operating hours
+                const hoursContainer = document.getElementById('courtHours');
+                if (this.currentCourt.operatingHours) {
+                    const hours = this.currentCourt.operatingHours;
+                    hoursContainer.textContent = `${hours.open} - ${hours.close}`;
+                } else {
+                    hoursContainer.textContent = 'Hours not specified';
+                }
+
+                // Update media gallery
+                this.updateMediaGallery();
+                
+                // Load recent check-ins
+                this.loadRecentCheckIns();
+            }
+
+            updateMediaGallery() {
+                const mediaContainer = document.getElementById('courtMedia');
+                if (this.currentCourt.images && this.currentCourt.images.length > 0) {
+                    mediaContainer.innerHTML = this.currentCourt.images
+                        .map(image => `
+                            <div class="media-item">
+                                <img src="${image.url}" alt="${image.caption || 'Court image'}" loading="lazy">
+                            </div>
+                        `)
+                        .join('');
+                } else {
+                    mediaContainer.innerHTML = '<p>No photos available</p>';
+                }
+            }
+
+            loadRecentCheckIns() {
+                // Demo check-ins
+                const demoCheckIns = [
+                    {
+                        user: { name: 'Alex Johnson', profilePicture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face' },
+                        crowdLevel: 3,
+                        comment: 'Great court, well maintained!',
+                        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000) // 2 hours ago
+                    },
+                    {
+                        user: { name: 'Sarah Chen', profilePicture: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=40&h=40&fit=crop&crop=face' },
+                        crowdLevel: 2,
+                        comment: 'Pretty busy today but worth the wait',
+                        createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000) // 4 hours ago
+                    }
+                ];
+
+                this.updateRecentCheckIns(demoCheckIns);
+            }
+
+            updateRecentCheckIns(checkIns) {
+                const container = document.getElementById('recentCheckins');
+                if (checkIns.length === 0) {
+                    container.innerHTML = '<p>No recent check-ins</p>';
+                    return;
+                }
+
+                container.innerHTML = checkIns.map(checkIn => `
+                    <div class="checkin-item">
+                        <div class="checkin-header">
+                            <div class="checkin-user">
+                                <img src="${checkIn.user.profilePicture}" 
+                                     alt="${checkIn.user.name}" class="checkin-avatar">
+                                <span>${checkIn.user.name}</span>
+                            </div>
+                            <div class="checkin-time">${this.formatTimeAgo(checkIn.createdAt)}</div>
+                        </div>
+                        <div class="checkin-comment">${checkIn.comment}</div>
+                    </div>
+                `).join('');
+            }
+
+            showCheckInModal() {
+                if (!this.currentUser) {
+                    this.showToast('Please sign in to check in', 'warning');
+                    return;
+                }
+                document.getElementById('checkInModal').classList.remove('hidden');
+            }
+
+            hideCheckInModal() {
+                document.getElementById('checkInModal').classList.add('hidden');
+                this.resetCheckInForm();
+            }
+
+            selectCrowdLevel(level) {
+                this.selectedCrowdLevel = level;
+                document.querySelectorAll('.crowd-level-btn').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                document.querySelector(`[data-level="${level}"]`).classList.add('selected');
+            }
+
+            resetCheckInForm() {
+                this.selectedCrowdLevel = null;
+                document.getElementById('checkInForm').reset();
+                document.querySelectorAll('.crowd-level-btn').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+            }
+
+            submitCheckIn() {
+                if (!this.selectedCrowdLevel) {
+                    this.showToast('Please select crowd level', 'warning');
+                    return;
+                }
+
+                this.showToast('Check-in submitted successfully! (Demo mode)', 'success');
+                this.hideCheckInModal();
+                this.loadRecentCheckIns();
+            }
+
+            toggleFavorite() {
+                if (!this.currentUser) {
+                    this.showToast('Please sign in to add favorites', 'warning');
+                    return;
+                }
+
+                const btn = document.getElementById('favoriteBtn');
+                const icon = btn.querySelector('i');
+                if (icon.className === 'far fa-heart') {
+                    icon.className = 'fas fa-heart';
+                    btn.innerHTML = '<i class="fas fa-heart"></i> Remove from Favorites';
+                    this.showToast('Added to favorites!', 'success');
+                } else {
+                    icon.className = 'far fa-heart';
+                    btn.innerHTML = '<i class="far fa-heart"></i> Add to Favorites';
+                    this.showToast('Removed from favorites', 'success');
+                }
+            }
+
+            searchCourts() {
+                const query = document.getElementById('searchInput').value.trim().toLowerCase();
+                if (!query) {
+                    this.updateCourtList();
+                    return;
+                }
+
+                const filteredCourts = this.courts.filter(court => 
+                    court.name.toLowerCase().includes(query) ||
+                    court.sportType.toLowerCase().includes(query) ||
+                    court.address.toLowerCase().includes(query)
+                );
+
+                const courtList = document.getElementById('courtList');
+                courtList.innerHTML = '';
+                filteredCourts.forEach(court => {
+                    const courtCard = this.createCourtCard(court);
+                    courtList.appendChild(courtCard);
+                });
+
+                this.showToast(`Found ${filteredCourts.length} courts`, 'success');
+            }
+
+            filterCourts() {
+                const sportFilter = document.getElementById('sportFilter').value;
+                const statusFilter = document.getElementById('statusFilter').value;
+
+                let filteredCourts = this.courts;
+
+                if (sportFilter) {
+                    filteredCourts = filteredCourts.filter(court => court.sportType === sportFilter);
+                }
+
+                if (statusFilter) {
+                    const statuses = statusFilter.split(',').map(s => parseInt(s));
+                    filteredCourts = filteredCourts.filter(court => 
+                        statuses.includes(court.currentStatus.crowdLevel)
+                    );
+                }
+
+                const courtList = document.getElementById('courtList');
+                courtList.innerHTML = '';
+                filteredCourts.forEach(court => {
+                    const courtCard = this.createCourtCard(court);
+                    courtList.appendChild(courtCard);
+                });
+            }
+
+            showPage(pageName) {
+                // Hide all pages
+                document.querySelectorAll('.page').forEach(page => {
+                    page.classList.remove('active');
+                });
+
+                // Show selected page
+                document.getElementById(`${pageName}View`).classList.add('active');
+
+                // Update navigation
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                document.querySelector(`[data-page="${pageName}"]`).classList.add('active');
+
+                // Load page-specific data
+                if (pageName === 'profile') {
+                    this.loadProfileData();
+                } else if (pageName === 'analytics') {
+                    this.loadAnalyticsData();
+                }
+            }
+
+            loadProfileData() {
+                if (!this.currentUser) {
+                    document.getElementById('profileView').innerHTML = 
+                        '<div class="text-center"><p>Please sign in to view your profile</p></div>';
+                    return;
+                }
+
+                this.updateProfileView(this.currentUser);
+            }
+
+            updateProfileView(user) {
+                document.getElementById('profileName').textContent = user.name;
+                document.getElementById('profileEmail').textContent = user.email;
+                document.getElementById('profileAvatar').src = user.profilePicture;
+                document.getElementById('profileCheckIns').textContent = user.totalCheckIns;
+                document.getElementById('profileReputation').textContent = user.reputationScore;
+                document.getElementById('profileBadges').textContent = user.badges.length;
+
+                // Demo user check-ins
+                const demoUserCheckIns = [
+                    {
+                        court: { name: 'Golden Gate Park Basketball' },
+                        crowdLevel: 3,
+                        comment: 'Great game today!',
+                        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) // 1 day ago
+                    },
+                    {
+                        court: { name: 'Mission Dolores Tennis' },
+                        crowdLevel: 2,
+                        comment: 'Perfect weather for tennis',
+                        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) // 3 days ago
+                    }
+                ];
+
+                this.updateUserCheckIns(demoUserCheckIns);
+            }
+
+            updateUserCheckIns(checkIns) {
+                const container = document.getElementById('profileCheckins');
+                if (checkIns.length === 0) {
+                    container.innerHTML = '<p>No check-ins yet</p>';
+                    return;
+                }
+
+                container.innerHTML = checkIns.map(checkIn => `
+                    <div class="checkin-item">
+                        <div class="checkin-header">
+                            <div class="court-card-name">${checkIn.court.name}</div>
+                            <div class="checkin-time">${this.formatTimeAgo(checkIn.createdAt)}</div>
+                        </div>
+                        <div class="court-card-status">
+                            <div class="status-indicator ${this.getStatusColor(checkIn.crowdLevel)}"></div>
+                            <span>Level ${checkIn.crowdLevel}</span>
+                        </div>
+                        ${checkIn.comment ? `<div class="checkin-comment">${checkIn.comment}</div>` : ''}
+                    </div>
+                `).join('');
+            }
+
+            loadAnalyticsData() {
+                // Load courts for dropdown
+                const select = document.getElementById('analyticsCourtSelect');
+                select.innerHTML = '<option value="">Select a court...</option>';
+                this.courts.forEach(court => {
+                    const option = document.createElement('option');
+                    option.value = court.id;
+                    option.textContent = court.name;
+                    select.appendChild(option);
+                });
+            }
+
+            loadAnalytics() {
+                const courtId = document.getElementById('analyticsCourtSelect').value;
+                if (!courtId) return;
+
+                // Demo analytics data
+                this.updateAnalyticsCharts({
+                    hourlyPatterns: [
+                        { hour: 6, averageCrowdLevel: 1.2, checkInCount: 2 },
+                        { hour: 7, averageCrowdLevel: 1.5, checkInCount: 3 },
+                        { hour: 8, averageCrowdLevel: 2.1, checkInCount: 5 },
+                        { hour: 9, averageCrowdLevel: 2.8, checkInCount: 8 },
+                        { hour: 10, averageCrowdLevel: 3.2, checkInCount: 12 },
+                        { hour: 11, averageCrowdLevel: 3.5, checkInCount: 15 },
+                        { hour: 12, averageCrowdLevel: 3.8, checkInCount: 18 },
+                        { hour: 13, averageCrowdLevel: 4.1, checkInCount: 20 },
+                        { hour: 14, averageCrowdLevel: 4.3, checkInCount: 22 },
+                        { hour: 15, averageCrowdLevel: 4.2, checkInCount: 21 },
+                        { hour: 16, averageCrowdLevel: 3.9, checkInCount: 19 },
+                        { hour: 17, averageCrowdLevel: 3.6, checkInCount: 16 },
+                        { hour: 18, averageCrowdLevel: 3.2, checkInCount: 13 },
+                        { hour: 19, averageCrowdLevel: 2.8, checkInCount: 10 },
+                        { hour: 20, averageCrowdLevel: 2.1, checkInCount: 6 },
+                        { hour: 21, averageCrowdLevel: 1.5, checkInCount: 3 }
+                    ],
+                    crowdDistribution: [
+                        { _id: 1, count: 15 },
+                        { _id: 2, count: 25 },
+                        { _id: 3, count: 30 },
+                        { _id: 4, count: 20 },
+                        { _id: 5, count: 10 }
+                    ],
+                    summary: {
+                        totalCheckIns: 100,
+                        averageCrowdLevel: 2.8,
+                        peakHour: 14
+                    }
+                });
+            }
+
+            updateAnalyticsCharts(analytics) {
+                // Update busy hours chart
+                this.updateBusyHoursChart(analytics.hourlyPatterns);
+                
+                // Update crowd distribution chart
+                this.updateCrowdDistributionChart(analytics.crowdDistribution);
+                
+                // Update summary
+                this.updateAnalyticsSummary(analytics.summary);
+            }
+
+            updateBusyHoursChart(hourlyData) {
+                const ctx = document.getElementById('busyHoursChart').getContext('2d');
+                
+                // Destroy existing chart if it exists
+                if (this.busyHoursChart) {
+                    this.busyHoursChart.destroy();
+                }
+
+                const hours = Array.from({length: 24}, (_, i) => i);
+                const data = hours.map(hour => {
+                    const found = hourlyData.find(item => item.hour === hour);
+                    return found ? found.averageCrowdLevel : 0;
+                });
+
+                this.busyHoursChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: hours.map(h => `${h}:00`),
+                        datasets: [{
+                            label: 'Average Crowd Level',
+                            data: data,
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 5
+                            }
+                        }
+                    }
+                });
+            }
+
+            updateCrowdDistributionChart(distributionData) {
+                const ctx = document.getElementById('crowdDistributionChart').getContext('2d');
+                
+                if (this.crowdDistributionChart) {
+                    this.crowdDistributionChart.destroy();
+                }
+
+                const labels = ['Empty', 'Light', 'Moderate', 'Busy', 'Very Busy'];
+                const data = [1, 2, 3, 4, 5].map(level => {
+                    const found = distributionData.find(item => item._id === level);
+                    return found ? found.count : 0;
+                });
+
+                this.crowdDistributionChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: [
+                                '#10b981',
+                                '#84cc16',
+                                '#f59e0b',
+                                '#f97316',
+                                '#ef4444'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true
+                    }
+                });
+            }
+
+            updateAnalyticsSummary(summary) {
+                const container = document.getElementById('analyticsSummary');
+                container.innerHTML = `
+                    <div class="summary-card">
+                        <div class="summary-card-value">${summary.totalCheckIns}</div>
+                        <div class="summary-card-label">Total Check-ins</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-card-value">${summary.averageCrowdLevel}</div>
+                        <div class="summary-card-label">Avg Crowd Level</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-card-value">${summary.peakHour}:00</div>
+                        <div class="summary-card-label">Peak Hour</div>
+                    </div>
+                `;
+            }
+
+            handleDemoLogin() {
+                const mockUser = {
+                    id: 'demo-user-123',
+                    name: 'Demo User',
+                    email: 'demo@courtcheck.com',
+                    profilePicture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+                    totalCheckIns: 15,
+                    reputationScore: 120,
+                    badges: ['consistent', 'helpful', 'explorer']
+                };
+
+                this.currentUser = mockUser;
+                this.updateAuthUI();
+                this.showToast('Signed in successfully! (Demo mode)', 'success');
+            }
+
+            logout() {
+                this.currentUser = null;
+                this.updateAuthUI();
+                this.showToast('Signed out successfully', 'success');
+            }
+
+            updateAuthUI() {
+                const loginBtn = document.getElementById('loginBtn');
+                const userMenu = document.getElementById('userMenu');
+                
+                if (this.currentUser) {
+                    loginBtn.classList.add('hidden');
+                    userMenu.classList.remove('hidden');
+                    document.getElementById('userName').textContent = this.currentUser.name;
+                    document.getElementById('userAvatar').src = this.currentUser.profilePicture;
+                } else {
+                    loginBtn.classList.remove('hidden');
+                    userMenu.classList.add('hidden');
+                }
+            }
+
+            getStatusColor(crowdLevel) {
+                const colors = {
+                    1: 'green',
+                    2: 'green',
+                    3: 'yellow',
+                    4: 'red',
+                    5: 'red'
+                };
+                return colors[crowdLevel] || 'green';
+            }
+
+            formatTimeAgo(date) {
+                const now = new Date();
+                const diffInSeconds = Math.floor((now - date) / 1000);
+                
+                if (diffInSeconds < 60) return 'just now';
+                if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+                if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+                return `${Math.floor(diffInSeconds / 86400)}d ago`;
+            }
+
+            showToast(message, type = 'info') {
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.textContent = message;
+                
+                document.getElementById('toastContainer').appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.remove();
+                }, 5000);
+            }
+        }
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            window.app = new StandaloneCourtCheckApp();
+        });
+    </script>
+</body>
+</html>
+

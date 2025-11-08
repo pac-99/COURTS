@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CourtCheck Demo - Find your game. Anytime.</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .demo-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            font-weight: 500;
+        }
+        .demo-banner i {
+            margin-right: 0.5rem;
+        }
+        .demo-map {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+        .demo-courts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .demo-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        .feature-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .feature-icon {
+            font-size: 2.5rem;
+            color: #2563eb;
+            margin-bottom: 1rem;
+        }
+        .cta-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+            border-radius: 12px;
+            margin: 2rem 0;
+        }
+        .cta-button {
+            display: inline-block;
+            background: white;
+            color: #2563eb;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 1rem;
+            transition: transform 0.2s;
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-banner">
+        <i class="fas fa-info-circle"></i>
+        This is a demo version of CourtCheck. The full app requires a backend server and database.
+    </div>
+
+    <div id="app">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-brand">
+                    <i class="fas fa-basketball-ball"></i>
+                    <span>CourtCheck</span>
+                </div>
+                <div class="nav-menu">
+                    <button class="nav-item active" data-page="map">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Map</span>
+                    </button>
+                    <button class="nav-item" data-page="features">
+                        <i class="fas fa-star"></i>
+                        <span>Features</span>
+                    </button>
+                    <button class="nav-item" data-page="about">
+                        <i class="fas fa-info"></i>
+                        <span>About</span>
+                    </button>
+                </div>
+                <div class="nav-auth">
+                    <button class="btn btn-primary">
+                        <i class="fab fa-google"></i>
+                        Sign In (Demo)
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Map View -->
+            <div id="mapView" class="page active">
+                <div class="map-container">
+                    <div class="demo-map">
+                        <div>
+                            <i class="fas fa-map-marked-alt" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                            <div>Interactive Map View</div>
+                            <div style="font-size: 0.9rem; opacity: 0.8; margin-top: 0.5rem;">
+                                Real-time court availability with Google Maps integration
+                            </div>
+                        </div>
+                    </div>
+                    <div class="map-controls">
+                        <div class="search-bar">
+                            <input type="text" placeholder="Search courts or locations...">
+                            <button class="btn btn-primary">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <div class="filters">
+                            <select>
+                                <option>All Sports</option>
+                                <option>Basketball</option>
+                                <option>Tennis</option>
+                                <option>Pickleball</option>
+                            </select>
+                            <select>
+                                <option>All Status</option>
+                                <option>Available</option>
+                                <option>Moderate</option>
+                                <option>Busy</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="court-list">
+                    <h3>Nearby Courts</h3>
+                    <div class="demo-courts">
+                        <div class="court-card">
+                            <div class="court-card-header">
+                                <div>
+                                    <div class="court-card-name">Golden Gate Park Basketball</div>
+                                    <div class="court-card-sport">Basketball</div>
+                                </div>
+                                <div class="court-card-distance">0.8 km</div>
+                            </div>
+                            <div class="court-card-status">
+                                <div class="status-indicator yellow"></div>
+                                <span>Moderate</span>
+                            </div>
+                        </div>
+                        <div class="court-card">
+                            <div class="court-card-header">
+                                <div>
+                                    <div class="court-card-name">Mission Dolores Tennis</div>
+                                    <div class="court-card-sport">Tennis</div>
+                                </div>
+                                <div class="court-card-distance">1.2 km</div>
+                            </div>
+                            <div class="court-card-status">
+                                <div class="status-indicator green"></div>
+                                <span>Light</span>
+                            </div>
+                        </div>
+                        <div class="court-card">
+                            <div class="court-card-header">
+                                <div>
+                                    <div class="court-card-name">Presidio Pickleball</div>
+                                    <div class="court-card-sport">Pickleball</div>
+                                </div>
+                                <div class="court-card-distance">2.1 km</div>
+                            </div>
+                            <div class="court-card-status">
+                                <div class="status-indicator red"></div>
+                                <span>Busy</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features View -->
+            <div id="featuresView" class="page">
+                <div class="cta-section">
+                    <h2>Core Features</h2>
+                    <p>CourtCheck combines crowdsourced data with AI-powered camera analysis to give you real-time court availability.</p>
+                </div>
+
+                <div class="demo-features">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-map-marked-alt"></i>
+                        </div>
+                        <h3>Interactive Map</h3>
+                        <p>View nearby courts with real-time availability status. Color-coded markers show crowd levels at a glance.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3>Crowdsourced Check-ins</h3>
+                        <p>Users report crowd levels (1-5 scale) with photos and comments. Build reputation through helpful reports.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-video"></i>
+                        </div>
+                        <h3>AI Camera Integration</h3>
+                        <p>Computer vision analyzes live camera feeds to automatically count players and estimate occupancy.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3>Analytics & Trends</h3>
+                        <p>View busy hours, crowd patterns, and historical data to plan your perfect game time.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <h3>Gamification</h3>
+                        <p>Earn points, badges, and reputation for consistent check-ins and helpful reports.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <h3>Mobile-First</h3>
+                        <p>Optimized for mobile devices with responsive design and touch-friendly interface.</p>
+                    </div>
+                </div>
+
+                <div class="cta-section">
+                    <h2>Supported Sports</h2>
+                    <p>Basketball • Tennis • Pickleball • Soccer • Volleyball • Badminton</p>
+                </div>
+            </div>
+
+            <!-- About View -->
+            <div id="aboutView" class="page">
+                <div class="profile-header">
+                    <div class="profile-info">
+                        <h2>About CourtCheck</h2>
+                        <p>CourtCheck helps players instantly see how busy local sports courts are by combining crowdsourced reports and AI-enhanced camera data.</p>
+                        
+                        <h3>Mission</h3>
+                        <p>To eliminate the frustration of showing up to crowded courts by providing real-time availability information through community-driven data and smart technology.</p>
+
+                        <h3>How It Works</h3>
+                        <ol>
+                            <li><strong>Community Reports:</strong> Users check in and report crowd levels with photos</li>
+                            <li><strong>AI Analysis:</strong> Cameras automatically count players and estimate occupancy</li>
+                            <li><strong>Smart Integration:</strong> Combine user data with AI data for accurate status</li>
+                            <li><strong>Real-time Updates:</strong> Status updates instantly across the platform</li>
+                        </ol>
+
+                        <h3>Tech Stack</h3>
+                        <ul>
+                            <li><strong>Backend:</strong> Node.js, Express, MongoDB</li>
+                            <li><strong>Frontend:</strong> Vanilla JavaScript, Google Maps API</li>
+                            <li><strong>AI/ML:</strong> TensorFlow Lite, OpenCV</li>
+                            <li><strong>Maps:</strong> Google Maps with geospatial indexing</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="cta-section">
+                    <h2>Get Started</h2>
+                    <p>Ready to find your perfect game time? Set up the full application with backend services.</p>
+                    <a href="#" class="cta-button">
+                        <i class="fas fa-rocket"></i>
+                        View Setup Instructions
+                    </a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Simple demo navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                const page = e.currentTarget.dataset.page;
+                
+                // Update active nav item
+                document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+                
+                // Show page
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                document.getElementById(`${page}View`).classList.add('active');
+            });
+        });
+
+        // Demo court card interactions
+        document.querySelectorAll('.court-card').forEach(card => {
+            card.addEventListener('click', () => {
+                alert('In the full app, this would show detailed court information, check-in form, and recent activity.');
+            });
+        });
+
+        // Demo search
+        document.querySelector('.search-bar input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                alert('In the full app, this would search for courts and update the map.');
+            }
+        });
+
+        // Demo filters
+        document.querySelectorAll('.filters select').forEach(select => {
+            select.addEventListener('change', () => {
+                alert('In the full app, this would filter courts by sport type and availability.');
+            });
+        });
+    </script>
+</body>
+</html>
+

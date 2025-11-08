@@ -1,0 +1,124 @@
+[
+  {
+    "id": 1,
+    "name": "Golden Gate Park Basketball Court",
+    "address": "Golden Gate Park, San Francisco, CA",
+    "coordinates": { "lat": 37.7694, "lng": -122.4862 },
+    "sport_type": "basketball",
+    "status": "available",
+    "amenities": ["Lighting", "Parking", "Restrooms"],
+    "hours": "6:00 AM - 10:00 PM",
+    "images": [
+      { "url": "https://images.unsplash.com/photo-1521417531180-9b9f7d4a7d10?auto=format&fit=crop&w=800&q=60", "caption": "Court view" }
+    ],
+    "recent_checkins": []
+  },
+  {
+    "id": 2,
+    "name": "Mission Playground Courts",
+    "address": "3555 19th St, San Francisco, CA",
+    "coordinates": { "lat": 37.7609, "lng": -122.4210 },
+    "sport_type": "basketball",
+    "status": "moderate",
+    "amenities": ["Lighting", "Restrooms"],
+    "hours": "7:00 AM - 9:00 PM",
+    "images": [],
+    "recent_checkins": []
+  },
+  {
+    "id": 3,
+    "name": "Moscone Park Tennis Courts",
+    "address": "1800 Chestnut St, San Francisco, CA",
+    "coordinates": { "lat": 37.8008, "lng": -122.4321 },
+    "sport_type": "tennis",
+    "status": "busy",
+    "amenities": ["Lighting", "Restrooms"],
+    "hours": "6:00 AM - 10:00 PM",
+    "images": [],
+    "recent_checkins": []
+  },
+  {
+    "id": 4,
+    "name": "Bay Club SF Tennis",
+    "address": "645 5th St, San Francisco, CA",
+    "coordinates": { "lat": 37.7756, "lng": -122.4011 },
+    "sport_type": "tennis",
+    "status": "available",
+    "amenities": ["Lighting", "Parking"],
+    "hours": "6:00 AM - 9:00 PM",
+    "images": [],
+    "recent_checkins": []
+  },
+  {
+    "id": 5,
+    "name": "Presidio Pickleball Courts",
+    "address": "Main Post, San Francisco, CA",
+    "coordinates": { "lat": 37.7989, "lng": -122.4653 },
+    "sport_type": "pickleball",
+    "status": "moderate",
+    "amenities": ["Parking", "Restrooms"],
+    "hours": "7:00 AM - 8:00 PM",
+    "images": [],
+    "recent_checkins": []
+  },
+  {
+    "id": 6,
+    "name": "Dolores Park Multi-use Courts",
+    "address": "Dolores St & 19th St, San Francisco, CA",
+    "coordinates": { "lat": 37.7596, "lng": -122.4269 },
+    "sport_type": "pickleball",
+    "status": "available",
+    "amenities": ["Restrooms"],
+    "hours": "6:00 AM - 10:00 PM",
+    "images": [],
+    "recent_checkins": []
+  },
+  {
+    "id": 7,
+    "name": "Beach Chalet Soccer Fields",
+    "address": "1500 John F Kennedy Dr, San Francisco, CA",
+    "coordinates": { "lat": 37.7699, "lng": -122.5101 },
+    "sport_type": "soccer",
+    "status": "busy",
+    "amenities": ["Lighting", "Parking", "Restrooms"],
+    "hours": "8:00 AM - 10:00 PM",
+    "images": [],
+    "recent_checkins": []
+  },
+  {
+    "id": 8,
+    "name": "Kezar Stadium Soccer Field",
+    "address": "755 Stanyan St, San Francisco, CA",
+    "coordinates": { "lat": 37.7679, "lng": -122.4550 },
+    "sport_type": "soccer",
+    "status": "moderate",
+    "amenities": ["Parking", "Restrooms"],
+    "hours": "6:00 AM - 10:00 PM",
+    "images": [],
+    "recent_checkins": []
+  },
+  {
+    "id": 9,
+    "name": "Upper Noe Rec Volleyball Court",
+    "address": "295 Day St, San Francisco, CA",
+    "coordinates": { "lat": 37.7424, "lng": -122.4277 },
+    "sport_type": "volleyball",
+    "status": "available",
+    "amenities": ["Lighting", "Restrooms"],
+    "hours": "9:00 AM - 9:00 PM",
+    "images": [],
+    "recent_checkins": []
+  },
+  {
+    "id": 10,
+    "name": "Alice Chalmers Playground Court",
+    "address": "670 Brunswick St, San Francisco, CA",
+    "coordinates": { "lat": 37.7188, "lng": -122.4419 },
+    "sport_type": "basketball",
+    "status": "available",
+    "amenities": ["Lighting"],
+    "hours": "7:00 AM - 8:00 PM",
+    "images": [],
+    "recent_checkins": []
+  }
+]

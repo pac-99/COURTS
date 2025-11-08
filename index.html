@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CourtCheck - Find your game. Anytime.</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-brand">
+                    <i class="fas fa-basketball-ball"></i>
+                    <span>CourtCheck</span>
+                </div>
+                <div class="nav-menu">
+                    <button class="nav-item" data-page="map">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Map</span>
+                    </button>
+                    <button class="nav-item" data-page="profile">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
+                    </button>
+                    <button class="nav-item" data-page="analytics">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Analytics</span>
+                    </button>
+                </div>
+                <div class="nav-auth">
+                    <button id="loginBtn" class="btn btn-primary">
+                        <i class="fab fa-google"></i>
+                        Sign In
+                    </button>
+                    <div id="userMenu" class="user-menu hidden">
+                        <div class="user-info">
+                            <img id="userAvatar" src="" alt="User Avatar" class="user-avatar">
+                            <span id="userName"></span>
+                        </div>
+                        <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Map View -->
+            <div id="mapView" class="page active">
+                <div class="map-container">
+                    <div id="map" class="map"></div>
+                    <div class="map-controls">
+                        <div class="search-bar">
+                            <input type="text" id="searchInput" placeholder="Search courts or locations...">
+                            <button id="searchBtn" class="btn btn-primary">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <div class="filters">
+                            <select id="sportFilter">
+                                <option value="">All Sports</option>
+                                <option value="basketball">Basketball</option>
+                                <option value="tennis">Tennis</option>
+                                <option value="pickleball">Pickleball</option>
+                                <option value="soccer">Soccer</option>
+                                <option value="volleyball">Volleyball</option>
+                                <option value="badminton">Badminton</option>
+                            </select>
+                            <select id="statusFilter">
+                                <option value="">All Status</option>
+                                <option value="1,2">Available</option>
+                                <option value="3">Moderate</option>
+                                <option value="4,5">Busy</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="court-list">
+                    <h3>Nearby Courts</h3>
+                    <div id="courtList" class="court-cards">
+                        <!-- Court cards will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Court Detail View -->
+            <div id="courtDetailView" class="page">
+                <div class="court-detail-header">
+                    <button id="backToMap" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Map
+                    </button>
+                    <h1 id="courtDetailName"></h1>
+                </div>
+                <div class="court-detail-content">
+                    <div class="court-info">
+                        <div class="court-status">
+                            <div id="courtStatusIndicator" class="status-indicator"></div>
+                            <div class="status-info">
+                                <span id="courtStatusText"></span>
+                                <span id="courtLastUpdated"></span>
+                            </div>
+                        </div>
+                        <div class="court-details">
+                            <p id="courtDescription"></p>
+                            <div class="court-amenities">
+                                <h4>Amenities</h4>
+                                <div id="courtAmenities"></div>
+                            </div>
+                            <div class="court-hours">
+                                <h4>Operating Hours</h4>
+                                <p id="courtHours"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="court-actions">
+                        <button id="checkInBtn" class="btn btn-primary btn-large">
+                            <i class="fas fa-check-circle"></i>
+                            Check In
+                        </button>
+                        <button id="favoriteBtn" class="btn btn-secondary">
+                            <i class="fas fa-heart"></i>
+                            Add to Favorites
+                        </button>
+                    </div>
+                    <div class="court-media">
+                        <h4>Photos & Videos</h4>
+                        <div id="courtMedia" class="media-gallery"></div>
+                    </div>
+                    <div class="court-checkins">
+                        <h4>Recent Check-ins</h4>
+                        <div id="recentCheckins" class="checkin-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Check-in Modal -->
+            <div id="checkInModal" class="modal hidden">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Check In</h3>
+                        <button id="closeCheckInModal" class="btn btn-secondary">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="checkInForm">
+                            <div class="form-group">
+                                <label for="crowdLevel">How busy is the court?</label>
+                                <div class="crowd-level-selector">
+                                    <button type="button" class="crowd-level-btn" data-level="1">
+                                        <i class="fas fa-circle"></i>
+                                        <span>Empty</span>
+                                    </button>
+                                    <button type="button" class="crowd-level-btn" data-level="2">
+                                        <i class="fas fa-circle"></i>
+                                        <span>Light</span>
+                                    </button>
+                                    <button type="button" class="crowd-level-btn" data-level="3">
+                                        <i class="fas fa-circle"></i>
+                                        <span>Moderate</span>
+                                    </button>
+                                    <button type="button" class="crowd-level-btn" data-level="4">
+                                        <i class="fas fa-circle"></i>
+                                        <span>Busy</span>
+                                    </button>
+                                    <button type="button" class="crowd-level-btn" data-level="5">
+                                        <i class="fas fa-circle"></i>
+                                        <span>Very Busy</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="checkInComment">Comment (optional)</label>
+                                <textarea id="checkInComment" placeholder="Share your experience..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="checkInMedia">Photos/Videos (optional)</label>
+                                <input type="file" id="checkInMedia" multiple accept="image/*,video/*">
+                            </div>
+                            <div class="form-group">
+                                <label for="checkInDuration">How long did you play? (minutes)</label>
+                                <input type="number" id="checkInDuration" min="0" placeholder="e.g., 60">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-large">
+                                <i class="fas fa-check"></i>
+                                Submit Check-in
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile View -->
+            <div id="profileView" class="page">
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        <img id="profileAvatar" src="" alt="Profile Avatar">
+                    </div>
+                    <div class="profile-info">
+                        <h2 id="profileName"></h2>
+                        <p id="profileEmail"></p>
+                        <div class="profile-stats">
+                            <div class="stat">
+                                <span class="stat-value" id="profileCheckIns">0</span>
+                                <span class="stat-label">Check-ins</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-value" id="profileReputation">0</span>
+                                <span class="stat-label">Reputation</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-value" id="profileBadges">0</span>
+                                <span class="stat-label">Badges</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-content">
+                    <div class="profile-section">
+                        <h3>My Check-ins</h3>
+                        <div id="profileCheckins" class="checkin-list"></div>
+                    </div>
+                    <div class="profile-section">
+                        <h3>Favorite Courts</h3>
+                        <div id="profileFavorites" class="court-cards"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics View -->
+            <div id="analyticsView" class="page">
+                <div class="analytics-header">
+                    <h2>Court Analytics</h2>
+                    <select id="analyticsCourtSelect">
+                        <option value="">Select a court...</option>
+                    </select>
+                </div>
+                <div class="analytics-content">
+                    <div class="analytics-charts">
+                        <div class="chart-container">
+                            <h3>Busy Hours</h3>
+                            <canvas id="busyHoursChart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3>Crowd Level Distribution</h3>
+                            <canvas id="crowdDistributionChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="analytics-summary">
+                        <h3>Summary</h3>
+                        <div id="analyticsSummary" class="summary-cards"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" class="loading-spinner hidden">
+            <div class="spinner"></div>
+            <p>Loading...</p>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div id="toastContainer" class="toast-container"></div>
+    </div>
+
+    <!-- Scripts -->
+    <!-- Google Maps API - Replace with your actual API key -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBvOkBw7cJ8X9Y2Z3A4B5C6D7E8F9G0H1I2J&libraries=places&callback=initMap"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
