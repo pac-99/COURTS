@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CourtCheck - Find your game. Anytime.</title>
+    <title>COURTS - Find your game. Anytime.</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,7 +17,7 @@
             <div class="nav-container">
                 <div class="nav-brand">
                     <i class="fas fa-basketball-ball"></i>
-                    <span>CourtCheck</span>
+                    <span>COURTS</span>
                 </div>
                 <div class="nav-menu">
                     <button class="nav-item active" data-page="map">
@@ -53,6 +53,12 @@
         <main class="main-content">
             <!-- Map View -->
             <div id="mapView" class="page active">
+                <div class="add-update-button-container">
+                    <button id="addUpdateBtn" class="btn btn-primary btn-large">
+                        <i class="fas fa-plus-circle"></i>
+                        Add an Update About a Location
+                    </button>
+                </div>
                 <div class="map-container">
                     <div id="map" class="map"></div>
                     <div class="map-controls">
@@ -85,6 +91,15 @@
                     <h3>Nearby Courts</h3>
                     <div id="courtList" class="court-cards">
                         <!-- Court cards will be populated here -->
+                    </div>
+                </div>
+                <div class="court-list">
+                    <h3>Favorite Courts</h3>
+                    <div id="favoriteCourtsList" class="court-cards">
+                        <!-- Favorite court cards will be populated here -->
+                    </div>
+                    <div id="noFavoritesMessage" class="no-favorites-message" style="display: none;">
+                        <p>No favorite courts yet. Click the heart icon on any court to add it to your favorites.</p>
                     </div>
                 </div>
             </div>
@@ -141,16 +156,24 @@
             </div>
 
             <!-- Check-in Modal -->
-            <div id="checkInModal" class="modal">
+            <div id="checkInModal" class="modal hidden">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h3>Check In</h3>
+                        <h3>Add an Update About a Location</h3>
                         <button id="closeCheckInModal" class="btn btn-secondary">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
                     <div class="modal-body">
                         <form id="checkInForm">
+                            <div class="form-group">
+                                <label for="locationName">Location Name</label>
+                                <input type="text" id="locationName" placeholder="Enter location name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="locationAddress">Address</label>
+                                <input type="text" id="locationAddress" placeholder="Enter address" required>
+                            </div>
                             <div class="form-group">
                                 <label for="crowdLevel">How busy is the court?</label>
                                 <div class="crowd-level-selector">
@@ -190,7 +213,7 @@
                             </div>
                             <button type="submit" class="btn btn-primary btn-large">
                                 <i class="fas fa-check"></i>
-                                Submit Check-in
+                                Submit Update
                             </button>
                         </form>
                     </div>
@@ -283,6 +306,7 @@
                 this.markers = [];
                 this.courts = this.getDemoCourts();
                 this.selectedCrowdLevel = null;
+                this.favoriteCourts = this.loadFavorites();
                 
                 this.init();
             }
@@ -408,7 +432,29 @@
                 this.setupEventListeners();
                 this.setupGoogleMaps();
                 this.updateCourtList();
+                this.updateFavoriteCourtsList();
                 this.showPage('map');
+                // Show check-in modal on first visit
+                setTimeout(() => {
+                    this.showCheckInModal();
+                }, 500);
+            }
+
+            loadFavorites() {
+                try {
+                    const saved = localStorage.getItem('favoriteCourts');
+                    return saved ? JSON.parse(saved) : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            saveFavorites() {
+                try {
+                    localStorage.setItem('favoriteCourts', JSON.stringify(this.favoriteCourts));
+                } catch (e) {
+                    console.error('Failed to save favorites:', e);
+                }
             }
 
             setupEventListeners() {
@@ -476,6 +522,11 @@
                     btn.addEventListener('click', (e) => {
                         this.selectCrowdLevel(parseInt(e.currentTarget.dataset.level));
                     });
+                });
+
+                // Add Update button - opens check-in modal
+                document.getElementById('addUpdateBtn').addEventListener('click', () => {
+                    this.showCheckInModal();
                 });
 
                 // Analytics
@@ -594,10 +645,38 @@
                 });
             }
 
-            createCourtCard(court) {
+            updateFavoriteCourtsList() {
+                const favoriteList = document.getElementById('favoriteCourtsList');
+                const noFavoritesMsg = document.getElementById('noFavoritesMessage');
+                favoriteList.innerHTML = '';
+
+                if (this.favoriteCourts.length === 0) {
+                    noFavoritesMsg.style.display = 'block';
+                    return;
+                }
+
+                noFavoritesMsg.style.display = 'none';
+
+                // Get favorite court objects from the courts array
+                const favoriteCourtObjects = this.courts.filter(court => 
+                    this.favoriteCourts.includes(court.id)
+                );
+
+                favoriteCourtObjects.forEach(court => {
+                    const courtCard = this.createCourtCard(court, true);
+                    favoriteList.appendChild(courtCard);
+                });
+            }
+
+            createCourtCard(court, isFavorite = false) {
                 const card = document.createElement('div');
                 card.className = 'court-card';
-                card.addEventListener('click', () => this.showCourtDetail(court));
+                card.addEventListener('click', (e) => {
+                    // Don't trigger if clicking the favorite button
+                    if (!e.target.closest('.court-card-favorite-btn')) {
+                        this.showCourtDetail(court);
+                    }
+                });
 
                 const distance = this.calculateDistance(
                     37.7749, -122.4194, // Default SF location
@@ -605,19 +684,35 @@
                     court.location.coordinates[0]
                 );
 
+                const isFavorited = this.favoriteCourts.includes(court.id);
+                const heartIcon = isFavorited ? 'fas fa-heart' : 'far fa-heart';
+                const heartColor = isFavorited ? 'favorited' : '';
+
                 card.innerHTML = `
                     <div class="court-card-header">
                         <div>
                             <div class="court-card-name">${court.name}</div>
                             <div class="court-card-sport">${court.sportType}</div>
                         </div>
-                        <div class="court-card-distance">${distance.toFixed(1)} km</div>
+                        <div class="court-card-header-right">
+                            <div class="court-card-distance">${distance.toFixed(1)} km</div>
+                            <button class="court-card-favorite-btn ${heartColor}" data-court-id="${court.id}" title="${isFavorited ? 'Remove from favorites' : 'Add to favorites'}">
+                                <i class="${heartIcon}"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="court-card-status">
                         <div class="status-indicator ${court.statusColor}"></div>
                         <span>${court.statusText}</span>
                     </div>
                 `;
+
+                // Add event listener for favorite button
+                const favoriteBtn = card.querySelector('.court-card-favorite-btn');
+                favoriteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.toggleCourtFavorite(court.id);
+                });
 
                 return card;
             }
@@ -651,6 +746,9 @@
                 document.getElementById('courtStatusText').textContent = this.currentCourt.statusText;
                 document.getElementById('courtLastUpdated').textContent = 
                     `Updated ${this.formatTimeAgo(new Date(this.currentCourt.currentStatus.lastUpdated))}`;
+
+                // Update favorite button
+                this.updateFavoriteButton();
 
                 // Update amenities
                 const amenitiesContainer = document.getElementById('courtAmenities');
@@ -736,9 +834,14 @@
             }
 
             showCheckInModal() {
-                if (!this.currentUser) {
-                    this.showToast('Please sign in to check in', 'warning');
-                    return;
+                // If opened from a court detail, pre-fill location fields
+                if (this.currentCourt) {
+                    document.getElementById('locationName').value = this.currentCourt.name;
+                    document.getElementById('locationAddress').value = this.currentCourt.address;
+                } else {
+                    // Clear fields if not from a court detail
+                    document.getElementById('locationName').value = '';
+                    document.getElementById('locationAddress').value = '';
                 }
                 document.getElementById('checkInModal').classList.remove('hidden');
             }
@@ -762,35 +865,77 @@
                 document.querySelectorAll('.crowd-level-btn').forEach(btn => {
                     btn.classList.remove('selected');
                 });
+                // Clear location fields
+                document.getElementById('locationName').value = '';
+                document.getElementById('locationAddress').value = '';
             }
 
             submitCheckIn() {
+                const locationName = document.getElementById('locationName').value.trim();
+                const locationAddress = document.getElementById('locationAddress').value.trim();
+
+                if (!locationName || !locationAddress) {
+                    this.showToast('Please fill in location name and address', 'warning');
+                    return;
+                }
+
                 if (!this.selectedCrowdLevel) {
                     this.showToast('Please select crowd level', 'warning');
                     return;
                 }
 
-                this.showToast('Check-in submitted successfully! (Demo mode)', 'success');
+                this.showToast(`Location update submitted: ${locationName} at ${locationAddress} (Demo mode)`, 'success');
                 this.hideCheckInModal();
-                this.loadRecentCheckIns();
+                if (this.currentCourt) {
+                    this.loadRecentCheckIns();
+                }
             }
 
             toggleFavorite() {
-                if (!this.currentUser) {
-                    this.showToast('Please sign in to add favorites', 'warning');
-                    return;
+                if (!this.currentCourt) return;
+                this.toggleCourtFavorite(this.currentCourt.id);
+            }
+
+            toggleCourtFavorite(courtId) {
+                const index = this.favoriteCourts.indexOf(courtId);
+                
+                if (index > -1) {
+                    // Remove from favorites
+                    this.favoriteCourts.splice(index, 1);
+                    this.showToast('Removed from favorites', 'success');
+                } else {
+                    // Add to favorites
+                    this.favoriteCourts.push(courtId);
+                    this.showToast('Added to favorites!', 'success');
                 }
 
+                // Save to localStorage
+                this.saveFavorites();
+
+                // Update favorite courts list
+                this.updateFavoriteCourtsList();
+
+                // Update current court detail view if viewing that court
+                if (this.currentCourt && this.currentCourt.id === courtId) {
+                    this.updateFavoriteButton();
+                }
+
+                // Update court list to reflect favorite status
+                this.updateCourtList();
+            }
+
+            updateFavoriteButton() {
+                if (!this.currentCourt) return;
+                
                 const btn = document.getElementById('favoriteBtn');
-                const icon = btn.querySelector('i');
-                if (icon.className === 'far fa-heart') {
-                    icon.className = 'fas fa-heart';
+                const isFavorited = this.favoriteCourts.includes(this.currentCourt.id);
+                
+                if (isFavorited) {
                     btn.innerHTML = '<i class="fas fa-heart"></i> Remove from Favorites';
-                    this.showToast('Added to favorites!', 'success');
+                    btn.classList.add('favorited');
                 } else {
-                    icon.className = 'far fa-heart';
                     btn.innerHTML = '<i class="far fa-heart"></i> Add to Favorites';
-                    this.showToast('Removed from favorites', 'success');
+                    btn.classList.remove('favorited');
                 }
             }
 
@@ -798,6 +943,7 @@
                 const query = document.getElementById('searchInput').value.trim().toLowerCase();
                 if (!query) {
                     this.updateCourtList();
+                    this.updateFavoriteCourtsList();
                     return;
                 }
 
@@ -813,6 +959,28 @@
                     const courtCard = this.createCourtCard(court);
                     courtList.appendChild(courtCard);
                 });
+
+                // Also filter favorite courts
+                const favoriteCourtObjects = this.courts.filter(court => 
+                    this.favoriteCourts.includes(court.id) &&
+                    (court.name.toLowerCase().includes(query) ||
+                     court.sportType.toLowerCase().includes(query) ||
+                     court.address.toLowerCase().includes(query))
+                );
+
+                const favoriteList = document.getElementById('favoriteCourtsList');
+                const noFavoritesMsg = document.getElementById('noFavoritesMessage');
+                favoriteList.innerHTML = '';
+
+                if (favoriteCourtObjects.length === 0) {
+                    noFavoritesMsg.style.display = 'block';
+                } else {
+                    noFavoritesMsg.style.display = 'none';
+                    favoriteCourtObjects.forEach(court => {
+                        const courtCard = this.createCourtCard(court, true);
+                        favoriteList.appendChild(courtCard);
+                    });
+                }
 
                 this.showToast(`Found ${filteredCourts.length} courts`, 'success');
             }
@@ -840,6 +1008,9 @@
                     const courtCard = this.createCourtCard(court);
                     courtList.appendChild(courtCard);
                 });
+
+                // Also update favorite courts list in case filters affect it
+                this.updateFavoriteCourtsList();
             }
 
             showPage(pageName) {
