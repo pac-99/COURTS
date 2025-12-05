@@ -10,17 +10,57 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Google Sign-In -->
-    <script src="https://apis.google.com/js/platform.js" async defer></script>
-    <meta name="google-signin-client_id" content="YOUR_CLIENT_ID.apps.googleusercontent.com">
-    
-    <!-- Google Maps API Loader -->
+    <!-- Google API Configuration - Replace with your actual keys -->
     <script>
-      (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
-      ({key: "YOUR_API_KEY_HERE", v: "weekly"});
+        // Single source of truth for API keys - replace these with your actual values
+        const GOOGLE_MAPS_API_KEY = "YOUR_API_KEY_HERE";  // TODO: Replace with your Google Maps API key
+        const GOOGLE_CLIENT_ID = "YOUR_CLIENT_ID.apps.googleusercontent.com";  // TODO: Replace with your OAuth 2.0 Client ID
+        const GOOGLE_MAP_ID = "DEMO_MAP_ID";  // Optional: Replace with your custom Map ID if you have one
     </script>
     
-    <!-- Google Maps Extended Component Library -->
+    <!-- Google Sign-In -->
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <meta name="google-signin-client_id" id="google-signin-client-id" content="">
+    <script>
+        // Set the Google Sign-In client ID from the constant
+        document.addEventListener('DOMContentLoaded', () => {
+            const metaTag = document.getElementById('google-signin-client-id');
+            if (metaTag && typeof GOOGLE_CLIENT_ID !== 'undefined') {
+                metaTag.content = GOOGLE_CLIENT_ID;
+            }
+        });
+    </script>
+    
+    <!-- Google Maps API Loader (One-time load using modern importLibrary pattern) -->
+    <script>
+      (g => {
+        // Bootstrap loader for Google Maps JS API
+        var h, a, k, p = "The Google Maps JavaScript API", c = "google", l = "importLibrary", q = "__ib__",
+            m = document, b = window;
+        b = b[c] || (b[c] = {}); 
+        var d = b.maps || (b.maps = {}), r = new Set(), e = new URLSearchParams();
+        const u = () => h || (h = new Promise(async (f, n) => {
+          await (a = m.createElement("script"));
+          e.set("libraries", [...r] + "");
+          for (k in g) e.set(k.replace(/[A-Z]/g, t => "_" + t[0].toLowerCase()), g[k]);
+          e.set("callback", c + ".maps." + q);
+          a.src = `https://maps.${c}apis.com/maps/api/js?` + e;
+          d[q] = f;
+          a.onerror = () => h = n(Error(p + " could not load."));
+          a.nonce = m.querySelector("script[nonce]")?.nonce || "";
+          m.head.append(a);
+        }));
+        d[l] ? console.warn(p + " only loads once. Ignoring:", g) : d[l] = (f, ...n) => {
+          r.add(f);
+          return u().then(() => d[l](f, ...n));
+        };
+      })({
+        key: GOOGLE_MAPS_API_KEY,  // Uses the constant defined above
+        v: "weekly"
+      });
+    </script>
+    
+    <!-- Google Maps Extended Component Library (One-time load) -->
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/@googlemaps/extended-component-library/0.6.11/index.min.js"></script>
 </head>
 <body>
@@ -367,50 +407,51 @@
     <!-- Store Locator Configuration -->
     <script>
         // Store Locator Configuration
+        // TODO: Replace location data with real court locations from your database
         const CONFIGURATION = {
             locations: [
                 {
-                    "title": "Golden Gate Park Basketball Courts",
-                    "address1": "Golden Gate Park",
-                    "address2": "San Francisco, CA 94117, USA",
-                    "coords": { "lat": 37.7694, "lng": -122.4612 },
-                    "placeId": ""
+                    title: "Golden Gate Park Basketball Courts",
+                    address1: "Golden Gate Park",
+                    address2: "San Francisco, CA 94117, USA",
+                    coords: { lat: 37.7694, lng: -122.4612 },
+                    placeId: ""  // TODO: Replace with real Google Maps Place ID if available
                 },
                 {
-                    "title": "Mission Dolores Tennis Courts",
-                    "address1": "Mission Dolores Park",
-                    "address2": "San Francisco, CA 94114, USA",
-                    "coords": { "lat": 37.7599, "lng": -122.4269 },
-                    "placeId": ""
+                    title: "Mission Dolores Tennis Courts",
+                    address1: "Mission Dolores Park",
+                    address2: "San Francisco, CA 94114, USA",
+                    coords: { lat: 37.7599, lng: -122.4269 },
+                    placeId: ""
                 },
                 {
-                    "title": "Presidio Pickleball Courts",
-                    "address1": "Presidio",
-                    "address2": "San Francisco, CA 94129, USA",
-                    "coords": { "lat": 37.7989, "lng": -122.4662 },
-                    "placeId": ""
+                    title: "Presidio Pickleball Courts",
+                    address1: "Presidio",
+                    address2: "San Francisco, CA 94129, USA",
+                    coords: { lat: 37.7989, lng: -122.4662 },
+                    placeId: ""
                 },
                 {
-                    "title": "Balboa Park Soccer Fields",
-                    "address1": "Balboa Park",
-                    "address2": "San Francisco, CA 94116, USA",
-                    "coords": { "lat": 37.7761, "lng": -122.5042 },
-                    "placeId": ""
+                    title: "Balboa Park Soccer Fields",
+                    address1: "Balboa Park",
+                    address2: "San Francisco, CA 94116, USA",
+                    coords: { lat: 37.7761, lng: -122.5042 },
+                    placeId: ""
                 }
             ],
             mapOptions: {
-                center: { lat: 37.7749, lng: -122.4194 },
+                center: { lat: 37.7749, lng: -122.4194 },  // Center on main city/area
                 fullscreenControl: true,
                 mapTypeControl: false,
                 streetViewControl: false,
                 zoom: 12,
                 zoomControl: true,
                 maxZoom: 17,
-                mapId: "DEMO_MAP_ID"
+                mapId: GOOGLE_MAP_ID  // Uses the constant defined in head
             },
-            mapsApiKey: "YOUR_API_KEY_HERE",
+            mapsApiKey: GOOGLE_MAPS_API_KEY,  // Uses the constant defined in head
             capabilities: {
-                input: false,
+                input: false,         // Disable search input (can enable if adding input box)
                 autocomplete: false,
                 directions: false,
                 distanceMatrix: false,
@@ -420,10 +461,13 @@
         };
         
         // Initialize Store Locator when DOM is ready
+        // This waits for the custom element to be defined before configuring
         document.addEventListener('DOMContentLoaded', async () => {
+            // Wait until the custom element is defined
             await customElements.whenDefined('gmpx-store-locator');
             const locator = document.querySelector('gmpx-store-locator');
             if (locator) {
+                // Apply the configuration to the store locator component
                 locator.configureFromQuickBuilder(CONFIGURATION);
             }
         });
@@ -431,27 +475,37 @@
     
     <script>
         // Google Sign-In Functions
+        // This callback runs when a user successfully signs in with Google
         function onSignIn(googleUser) {
+            // Get profile information for the signed-in user
             const profile = googleUser.getBasicProfile();
+            
             const user = {
                 id: profile.getId(),
                 name: profile.getName(),
                 email: profile.getEmail(),
                 imageUrl: profile.getImageUrl()
             };
+            
             console.log('Signed in user:', user);
             
-            // Integrate with COURTS user system
+            // TODO: In production, verify the ID token on the server
+            // const idToken = googleUser.getAuthResponse().id_token;
+            // Send idToken to your backend for verification before trusting the user data
+            
+            // Integrate with COURTS app's user system
             if (window.app) {
                 window.app.handleGoogleSignIn(user);
             }
         }
         
+        // Sign out function - disconnects the user from this app (not from Google account)
         function signOut() {
             const auth2 = gapi.auth2.getAuthInstance();
             if (auth2) {
-                auth2.signOut().then(function () {
+                auth2.signOut().then(() => {
                     console.log('User signed out.');
+                    // Update UI to reflect the user is signed out
                     if (window.app) {
                         window.app.logout();
                     }
@@ -459,11 +513,11 @@
             }
         }
         
-        // Initialize Google Sign-In when platform loads
+        // Initialize Google Sign-In when platform library loads
         window.onGoogleSignInLoad = function() {
             gapi.load('auth2', function() {
                 gapi.auth2.init({
-                    client_id: 'YOUR_CLIENT_ID.apps.googleusercontent.com'
+                    client_id: GOOGLE_CLIENT_ID  // Uses the constant defined in head
                 });
             });
         };
@@ -816,12 +870,14 @@
                 this.advancedMarkers.forEach(marker => marker.map = null);
                 this.advancedMarkers = [];
 
-                // Use AdvancedMarkerElement if available, otherwise fall back to classic markers
+                // Use AdvancedMarkerElement if available (recommended, as classic Marker is deprecated)
+                // Otherwise fall back to classic markers for compatibility
                 if (this.AdvancedMarkerElement) {
                     this.courts.forEach(court => {
                         const position = { lat: court.location.coordinates[1], lng: court.location.coordinates[0] };
                         
-                        // Create custom icon element
+                        // Create a custom DOM element for the marker icon
+                        // You can use an image URL or HTML element as the marker content
                         const iconElement = document.createElement('div');
                         iconElement.className = 'custom-marker';
                         iconElement.innerHTML = `
@@ -830,13 +886,15 @@
                             </div>
                         `;
                         
+                        // Create the Advanced Marker Element (modern API, replaces deprecated Marker)
                         const marker = new this.AdvancedMarkerElement({
                             map: this.map,
                             position: position,
                             title: court.name,
-                            content: iconElement
+                            content: iconElement  // Custom HTML element as marker content
                         });
 
+                        // Add click listener to show court details
                         marker.addListener('click', () => {
                             this.showCourtDetail(court);
                         });
@@ -844,7 +902,8 @@
                         this.advancedMarkers.push(marker);
                     });
                 } else {
-                    // Fallback to classic markers
+                    // Fallback to classic markers (deprecated but still works)
+                    // Note: google.maps.Marker is deprecated in favor of AdvancedMarkerElement
                     this.courts.forEach(court => {
                         const marker = new google.maps.Marker({
                             position: { lat: court.location.coordinates[1], lng: court.location.coordinates[0] },
