@@ -463,12 +463,22 @@
         // Initialize Store Locator when DOM is ready
         // This waits for the custom element to be defined before configuring
         document.addEventListener('DOMContentLoaded', async () => {
+            // Check if API key is configured
+            if (!GOOGLE_MAPS_API_KEY || GOOGLE_MAPS_API_KEY === "YOUR_API_KEY_HERE") {
+                console.warn('Store Locator: Google Maps API key not configured.');
+                return;
+            }
+            
             // Wait until the custom element is defined
-            await customElements.whenDefined('gmpx-store-locator');
-            const locator = document.querySelector('gmpx-store-locator');
-            if (locator) {
-                // Apply the configuration to the store locator component
-                locator.configureFromQuickBuilder(CONFIGURATION);
+            try {
+                await customElements.whenDefined('gmpx-store-locator');
+                const locator = document.querySelector('gmpx-store-locator');
+                if (locator) {
+                    // Apply the configuration to the store locator component
+                    locator.configureFromQuickBuilder(CONFIGURATION);
+                }
+            } catch (error) {
+                console.error('Error initializing store locator:', error);
             }
         });
     </script>
@@ -477,49 +487,86 @@
         // Google Sign-In Functions
         // This callback runs when a user successfully signs in with Google
         function onSignIn(googleUser) {
-            // Get profile information for the signed-in user
-            const profile = googleUser.getBasicProfile();
-            
-            const user = {
-                id: profile.getId(),
-                name: profile.getName(),
-                email: profile.getEmail(),
-                imageUrl: profile.getImageUrl()
-            };
-            
-            console.log('Signed in user:', user);
-            
-            // TODO: In production, verify the ID token on the server
-            // const idToken = googleUser.getAuthResponse().id_token;
-            // Send idToken to your backend for verification before trusting the user data
-            
-            // Integrate with COURTS app's user system
-            if (window.app) {
-                window.app.handleGoogleSignIn(user);
+            try {
+                // Get profile information for the signed-in user
+                const profile = googleUser.getBasicProfile();
+                
+                const user = {
+                    id: profile.getId(),
+                    name: profile.getName(),
+                    email: profile.getEmail(),
+                    imageUrl: profile.getImageUrl()
+                };
+                
+                console.log('Signed in user:', user);
+                
+                // TODO: In production, verify the ID token on the server
+                // const idToken = googleUser.getAuthResponse().id_token;
+                // Send idToken to your backend for verification before trusting the user data
+                
+                // Integrate with COURTS app's user system
+                if (window.app) {
+                    window.app.handleGoogleSignIn(user);
+                }
+            } catch (error) {
+                console.error('Error in onSignIn:', error);
             }
         }
         
         // Sign out function - disconnects the user from this app (not from Google account)
         function signOut() {
-            const auth2 = gapi.auth2.getAuthInstance();
-            if (auth2) {
-                auth2.signOut().then(() => {
-                    console.log('User signed out.');
-                    // Update UI to reflect the user is signed out
+            try {
+                if (typeof gapi !== 'undefined' && gapi.auth2) {
+                    const auth2 = gapi.auth2.getAuthInstance();
+                    if (auth2) {
+                        auth2.signOut().then(() => {
+                            console.log('User signed out.');
+                            // Update UI to reflect the user is signed out
+                            if (window.app) {
+                                window.app.logout();
+                            }
+                        }).catch(error => {
+                            console.error('Error signing out:', error);
+                        });
+                    }
+                } else {
+                    // Fallback: just update the app UI
                     if (window.app) {
                         window.app.logout();
                     }
-                });
+                }
+            } catch (error) {
+                console.error('Error in signOut:', error);
+                // Fallback: just update the app UI
+                if (window.app) {
+                    window.app.logout();
+                }
             }
         }
         
         // Initialize Google Sign-In when platform library loads
         window.onGoogleSignInLoad = function() {
-            gapi.load('auth2', function() {
-                gapi.auth2.init({
-                    client_id: GOOGLE_CLIENT_ID  // Uses the constant defined in head
+            // Check if client ID is configured
+            if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID === "YOUR_CLIENT_ID.apps.googleusercontent.com") {
+                console.warn('Google Sign-In: Client ID not configured. Sign-in will not work.');
+                console.info('To enable Google Sign-In:');
+                console.info('1. Go to https://console.cloud.google.com/apis/credentials');
+                console.info('2. Create OAuth 2.0 Client ID credentials');
+                console.info('3. Replace "YOUR_CLIENT_ID.apps.googleusercontent.com" in index.html');
+                return;
+            }
+            
+            if (typeof gapi !== 'undefined') {
+                gapi.load('auth2', function() {
+                    try {
+                        gapi.auth2.init({
+                            client_id: GOOGLE_CLIENT_ID  // Uses the constant defined in head
+                        });
+                    } catch (error) {
+                        console.error('Error initializing Google Sign-In:', error);
+                    }
                 });
-            });
+            }
         };
     </script>
     
@@ -789,28 +836,52 @@
             }
 
             async setupGoogleMaps() {
-                // Check if Google Maps is available
-                if (typeof google === 'undefined' || !google.maps) {
-                    console.warn('Google Maps API not loaded. Using fallback map display.');
-                    this.setupFallbackMap();
+                // Check if API key is set
+                if (!GOOGLE_MAPS_API_KEY || GOOGLE_MAPS_API_KEY === "YOUR_API_KEY_HERE") {
+                    console.warn('Google Maps API key not configured.');
+                    this.setupFallbackMap(true);
                     return;
                 }
 
+                // Check if Google Maps is available
+                if (typeof google === 'undefined' || !google.maps) {
+                    console.warn('Google Maps API not loaded. Waiting for API to load...');
+                    // Wait a bit for the API to load
+                    let attempts = 0;
+                    const checkApi = setInterval(() => {
+                        attempts++;
+                        if (typeof google !== 'undefined' && google.maps) {
+                            clearInterval(checkApi);
+                            this.initializeMap();
+                        } else if (attempts > 20) {
+                            clearInterval(checkApi);
+                            console.error('Google Maps API failed to load after timeout.');
+                            this.setupFallbackMap(true);
+                        }
+                    }, 500);
+                    return;
+                }
+
+                this.initializeMap();
+            }
+
+            async initializeMap() {
                 try {
-                    // Use modern importLibrary pattern
+                    // Use modern importLibrary pattern to dynamically load the Maps library
                     const { Map } = await google.maps.importLibrary("maps");
                     const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
                     
-                    // Store AdvancedMarkerElement for later use
+                    // Store AdvancedMarkerElement for later use in creating custom markers
                     this.AdvancedMarkerElement = AdvancedMarkerElement;
 
-                    // Default to San Francisco
+                    // Center on main city/area (San Francisco in this example)
                     const defaultLocation = { lat: 37.7749, lng: -122.4194 };
                     
+                    // Create a new map instance in the #map container
                     this.map = new Map(document.getElementById('map'), {
-                        zoom: 13,
                         center: defaultLocation,
-                        mapId: "DEMO_MAP_ID",
+                        zoom: 12,
+                        mapId: typeof GOOGLE_MAP_ID !== 'undefined' && GOOGLE_MAP_ID !== "DEMO_MAP_ID" ? GOOGLE_MAP_ID : undefined,
                         styles: [
                             {
                                 featureType: 'poi',
@@ -832,6 +903,7 @@
                                 this.updateMapMarkers();
                             },
                             () => {
+                                // If geolocation fails, just show markers at default location
                                 this.updateMapMarkers();
                             }
                         );
@@ -840,20 +912,32 @@
                     }
                 } catch (error) {
                     console.error('Error initializing Google Maps:', error);
-                    this.setupFallbackMap();
+                    this.setupFallbackMap(true);
                 }
             }
 
-            setupFallbackMap() {
+            setupFallbackMap(showInstructions = false) {
                 const mapElement = document.getElementById('map');
+                const instructions = showInstructions ? `
+                    <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 8px; max-width: 500px; margin-left: auto; margin-right: auto;">
+                        <div style="font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem;">To enable the interactive map:</div>
+                        <ol style="text-align: left; font-size: 0.85rem; line-height: 1.6; padding-left: 1.5rem;">
+                            <li>Get a Google Maps API key from <a href="https://console.cloud.google.com/google/maps-apis" target="_blank" style="color: #fff; text-decoration: underline;">Google Cloud Console</a></li>
+                            <li>Enable "Maps JavaScript API" for your project</li>
+                            <li>Replace "YOUR_API_KEY_HERE" in index.html with your actual API key</li>
+                            <li>Refresh this page</li>
+                        </ol>
+                    </div>
+                ` : '';
                 mapElement.innerHTML = `
-                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center;">
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center; padding: 2rem;">
                         <div>
                             <i class="fas fa-map-marked-alt" style="font-size: 3rem; margin-bottom: 1rem;"></i>
                             <div style="font-size: 1.2rem; font-weight: 500;">Interactive Map View</div>
                             <div style="font-size: 0.9rem; opacity: 0.8; margin-top: 0.5rem;">
-                                Google Maps integration (requires API key)
+                                ${showInstructions ? 'Google Maps API key required' : 'Google Maps integration (requires API key)'}
                             </div>
+                            ${instructions}
                         </div>
                     </div>
                 `;
