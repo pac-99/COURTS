@@ -9,6 +9,19 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Sign-In -->
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <meta name="google-signin-client_id" content="YOUR_CLIENT_ID.apps.googleusercontent.com">
+    
+    <!-- Google Maps API Loader -->
+    <script>
+      (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
+      ({key: "YOUR_API_KEY_HERE", v: "weekly"});
+    </script>
+    
+    <!-- Google Maps Extended Component Library -->
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/@googlemaps/extended-component-library/0.6.11/index.min.js"></script>
 </head>
 <body>
     <div id="app">
@@ -38,12 +51,14 @@
                         <i class="fab fa-google"></i>
                         Sign In
                     </button>
+                    <!-- Google Sign-In Button (hidden, triggered programmatically) -->
+                    <div id="googleSignInButton" class="g-signin2" data-onsuccess="onSignIn" style="display: none;"></div>
                     <div id="userMenu" class="user-menu hidden">
                         <div class="user-info">
                             <img id="userAvatar" src="" alt="User Avatar" class="user-avatar">
                             <span id="userName"></span>
                         </div>
-                        <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+                        <button id="logoutBtn" class="btn btn-secondary" onclick="signOut();">Logout</button>
                     </div>
                 </div>
             </div>
@@ -53,6 +68,38 @@
         <main class="main-content">
             <!-- Map View -->
             <div id="mapView" class="page active">
+                <div class="branding-header">
+                    <div class="branding-banner">
+                        <div class="branding-banner-content">
+                            <span class="branding-text">Find your game</span>
+                            <span class="branding-separator"> - </span>
+                            <span class="branding-text">Play Smarter</span>
+                            <span class="branding-separator"> - </span>
+                            <span class="branding-text">Find your game</span>
+                            <span class="branding-separator"> - </span>
+                            <span class="branding-text">Play Smarter</span>
+                            <span class="branding-separator"> - </span>
+                            <span class="branding-text">Find your game</span>
+                            <span class="branding-separator"> - </span>
+                            <span class="branding-text">Play Smarter</span>
+                            <span class="branding-separator"> - </span>
+                        </div>
+                        <div class="branding-banner-content" aria-hidden="true">
+                            <span class="branding-text">Find your game</span>
+                            <span class="branding-separator"> - </span>
+                            <span class="branding-text">Play Smarter</span>
+                            <span class="branding-separator"> - </span>
+                            <span class="branding-text">Find your game</span>
+                            <span class="branding-separator"> - </span>
+                            <span class="branding-text">Play Smarter</span>
+                            <span class="branding-separator"> - </span>
+                            <span class="branding-text">Find your game</span>
+                            <span class="branding-separator"> - </span>
+                            <span class="branding-text">Play Smarter</span>
+                            <span class="branding-separator"> - </span>
+                        </div>
+                    </div>
+                </div>
                 <div class="add-update-button-container">
                     <button id="addUpdateBtn" class="btn btn-primary btn-large">
                         <i class="fas fa-plus-circle"></i>
@@ -101,6 +148,13 @@
                     <div id="noFavoritesMessage" class="no-favorites-message" style="display: none;">
                         <p>No favorite courts yet. Click the heart icon on any court to add it to your favorites.</p>
                     </div>
+                </div>
+                
+                <!-- Store Locator Component -->
+                <div id="storeLocatorContainer" class="store-locator-container" style="display: none;">
+                    <h3>Find Courts Nearby</h3>
+                    <gmpx-api-loader key="YOUR_API_KEY_HERE" solution-channel="GMP_QB_locatorplus_v11_c"></gmpx-api-loader>
+                    <gmpx-store-locator map-id="DEMO_MAP_ID"></gmpx-store-locator>
                 </div>
             </div>
 
@@ -265,7 +319,20 @@
                         <option value="">Select a court...</option>
                     </select>
                 </div>
-                <div class="analytics-content">
+                <!-- Premium Lock Overlay -->
+                <div id="premiumLockOverlay" class="premium-lock-overlay">
+                    <div class="premium-lock-content">
+                        <div class="premium-lock-icon">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <h3>Premium Feature</h3>
+                        <p>Unlock advanced analytics to get insights into court busy patterns and trends.</p>
+                        <button id="getPremiumBtn" class="btn btn-primary btn-large">
+                            Get Premium for $3.99
+                        </button>
+                    </div>
+                </div>
+                <div id="analyticsContent" class="analytics-content hidden">
                     <div class="analytics-charts">
                         <div class="chart-container">
                             <h3>Busy Hours</h3>
@@ -296,6 +363,112 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Store Locator Configuration -->
+    <script>
+        // Store Locator Configuration
+        const CONFIGURATION = {
+            locations: [
+                {
+                    "title": "Golden Gate Park Basketball Courts",
+                    "address1": "Golden Gate Park",
+                    "address2": "San Francisco, CA 94117, USA",
+                    "coords": { "lat": 37.7694, "lng": -122.4612 },
+                    "placeId": ""
+                },
+                {
+                    "title": "Mission Dolores Tennis Courts",
+                    "address1": "Mission Dolores Park",
+                    "address2": "San Francisco, CA 94114, USA",
+                    "coords": { "lat": 37.7599, "lng": -122.4269 },
+                    "placeId": ""
+                },
+                {
+                    "title": "Presidio Pickleball Courts",
+                    "address1": "Presidio",
+                    "address2": "San Francisco, CA 94129, USA",
+                    "coords": { "lat": 37.7989, "lng": -122.4662 },
+                    "placeId": ""
+                },
+                {
+                    "title": "Balboa Park Soccer Fields",
+                    "address1": "Balboa Park",
+                    "address2": "San Francisco, CA 94116, USA",
+                    "coords": { "lat": 37.7761, "lng": -122.5042 },
+                    "placeId": ""
+                }
+            ],
+            mapOptions: {
+                center: { lat: 37.7749, lng: -122.4194 },
+                fullscreenControl: true,
+                mapTypeControl: false,
+                streetViewControl: false,
+                zoom: 12,
+                zoomControl: true,
+                maxZoom: 17,
+                mapId: "DEMO_MAP_ID"
+            },
+            mapsApiKey: "YOUR_API_KEY_HERE",
+            capabilities: {
+                input: false,
+                autocomplete: false,
+                directions: false,
+                distanceMatrix: false,
+                details: false,
+                actions: false
+            }
+        };
+        
+        // Initialize Store Locator when DOM is ready
+        document.addEventListener('DOMContentLoaded', async () => {
+            await customElements.whenDefined('gmpx-store-locator');
+            const locator = document.querySelector('gmpx-store-locator');
+            if (locator) {
+                locator.configureFromQuickBuilder(CONFIGURATION);
+            }
+        });
+    </script>
+    
+    <script>
+        // Google Sign-In Functions
+        function onSignIn(googleUser) {
+            const profile = googleUser.getBasicProfile();
+            const user = {
+                id: profile.getId(),
+                name: profile.getName(),
+                email: profile.getEmail(),
+                imageUrl: profile.getImageUrl()
+            };
+            console.log('Signed in user:', user);
+            
+            // Integrate with COURTS user system
+            if (window.app) {
+                window.app.handleGoogleSignIn(user);
+            }
+        }
+        
+        function signOut() {
+            const auth2 = gapi.auth2.getAuthInstance();
+            if (auth2) {
+                auth2.signOut().then(function () {
+                    console.log('User signed out.');
+                    if (window.app) {
+                        window.app.logout();
+                    }
+                });
+            }
+        }
+        
+        // Initialize Google Sign-In when platform loads
+        window.onGoogleSignInLoad = function() {
+            gapi.load('auth2', function() {
+                gapi.auth2.init({
+                    client_id: 'YOUR_CLIENT_ID.apps.googleusercontent.com'
+                });
+            });
+        };
+    </script>
+    
     <script>
         // Standalone CourtCheck App with Demo Data
         class StandaloneCourtCheckApp {
@@ -304,9 +477,13 @@
                 this.currentCourt = null;
                 this.map = null;
                 this.markers = [];
+                this.advancedMarkers = [];
                 this.courts = this.getDemoCourts();
                 this.selectedCrowdLevel = null;
                 this.favoriteCourts = this.loadFavorites();
+                this.isPremium = this.loadPremiumStatus();
+                this.googleMapsApiKey = "YOUR_API_KEY_HERE";
+                this.googleClientId = "YOUR_CLIENT_ID.apps.googleusercontent.com";
                 
                 this.init();
             }
@@ -457,6 +634,23 @@
                 }
             }
 
+            loadPremiumStatus() {
+                try {
+                    const saved = localStorage.getItem('isPremium');
+                    return saved === 'true';
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            savePremiumStatus() {
+                try {
+                    localStorage.setItem('isPremium', 'true');
+                } catch (e) {
+                    console.error('Failed to save premium status:', e);
+                }
+            }
+
             setupEventListeners() {
                 // Navigation
                 document.querySelectorAll('.nav-item').forEach(item => {
@@ -533,48 +727,66 @@
                 document.getElementById('analyticsCourtSelect').addEventListener('change', () => {
                     this.loadAnalytics();
                 });
+
+                // Premium unlock
+                document.getElementById('getPremiumBtn').addEventListener('click', () => {
+                    this.unlockPremium();
+                });
             }
 
-            setupGoogleMaps() {
+            async setupGoogleMaps() {
                 // Check if Google Maps is available
-                if (typeof google === 'undefined') {
+                if (typeof google === 'undefined' || !google.maps) {
                     console.warn('Google Maps API not loaded. Using fallback map display.');
                     this.setupFallbackMap();
                     return;
                 }
 
-                // Default to San Francisco
-                const defaultLocation = { lat: 37.7749, lng: -122.4194 };
-                
-                this.map = new google.maps.Map(document.getElementById('map'), {
-                    zoom: 13,
-                    center: defaultLocation,
-                    styles: [
-                        {
-                            featureType: 'poi',
-                            elementType: 'labels',
-                            stylers: [{ visibility: 'off' }]
-                        }
-                    ]
-                });
+                try {
+                    // Use modern importLibrary pattern
+                    const { Map } = await google.maps.importLibrary("maps");
+                    const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+                    
+                    // Store AdvancedMarkerElement for later use
+                    this.AdvancedMarkerElement = AdvancedMarkerElement;
 
-                // Try to get user's location
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        (position) => {
-                            const userLocation = {
-                                lat: position.coords.latitude,
-                                lng: position.coords.longitude
-                            };
-                            this.map.setCenter(userLocation);
-                            this.updateMapMarkers();
-                        },
-                        () => {
-                            this.updateMapMarkers();
-                        }
-                    );
-                } else {
-                    this.updateMapMarkers();
+                    // Default to San Francisco
+                    const defaultLocation = { lat: 37.7749, lng: -122.4194 };
+                    
+                    this.map = new Map(document.getElementById('map'), {
+                        zoom: 13,
+                        center: defaultLocation,
+                        mapId: "DEMO_MAP_ID",
+                        styles: [
+                            {
+                                featureType: 'poi',
+                                elementType: 'labels',
+                                stylers: [{ visibility: 'off' }]
+                            }
+                        ]
+                    });
+
+                    // Try to get user's location
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(
+                            (position) => {
+                                const userLocation = {
+                                    lat: position.coords.latitude,
+                                    lng: position.coords.longitude
+                                };
+                                this.map.setCenter(userLocation);
+                                this.updateMapMarkers();
+                            },
+                            () => {
+                                this.updateMapMarkers();
+                            }
+                        );
+                    } else {
+                        this.updateMapMarkers();
+                    }
+                } catch (error) {
+                    console.error('Error initializing Google Maps:', error);
+                    this.setupFallbackMap();
                 }
             }
 
@@ -593,27 +805,72 @@
                 `;
             }
 
-            updateMapMarkers() {
+            async updateMapMarkers() {
                 if (!this.map) return;
 
                 // Clear existing markers
                 this.markers.forEach(marker => marker.setMap(null));
                 this.markers = [];
+                
+                // Clear existing advanced markers
+                this.advancedMarkers.forEach(marker => marker.map = null);
+                this.advancedMarkers = [];
 
-                this.courts.forEach(court => {
-                    const marker = new google.maps.Marker({
-                        position: { lat: court.location.coordinates[1], lng: court.location.coordinates[0] },
-                        map: this.map,
-                        title: court.name,
-                        icon: this.getMarkerIcon(court.currentStatus.crowdLevel)
+                // Use AdvancedMarkerElement if available, otherwise fall back to classic markers
+                if (this.AdvancedMarkerElement) {
+                    this.courts.forEach(court => {
+                        const position = { lat: court.location.coordinates[1], lng: court.location.coordinates[0] };
+                        
+                        // Create custom icon element
+                        const iconElement = document.createElement('div');
+                        iconElement.className = 'custom-marker';
+                        iconElement.innerHTML = `
+                            <div class="marker-icon" style="background-color: ${this.getMarkerColor(court.currentStatus.crowdLevel)}">
+                                <i class="fas fa-basketball-ball"></i>
+                            </div>
+                        `;
+                        
+                        const marker = new this.AdvancedMarkerElement({
+                            map: this.map,
+                            position: position,
+                            title: court.name,
+                            content: iconElement
+                        });
+
+                        marker.addListener('click', () => {
+                            this.showCourtDetail(court);
+                        });
+
+                        this.advancedMarkers.push(marker);
                     });
+                } else {
+                    // Fallback to classic markers
+                    this.courts.forEach(court => {
+                        const marker = new google.maps.Marker({
+                            position: { lat: court.location.coordinates[1], lng: court.location.coordinates[0] },
+                            map: this.map,
+                            title: court.name,
+                            icon: this.getMarkerIcon(court.currentStatus.crowdLevel)
+                        });
 
-                    marker.addListener('click', () => {
-                        this.showCourtDetail(court);
+                        marker.addListener('click', () => {
+                            this.showCourtDetail(court);
+                        });
+
+                        this.markers.push(marker);
                     });
-
-                    this.markers.push(marker);
-                });
+                }
+            }
+            
+            getMarkerColor(crowdLevel) {
+                const colors = {
+                    1: '#10b981', // green
+                    2: '#84cc16', // light green
+                    3: '#f59e0b', // yellow
+                    4: '#f97316', // orange
+                    5: '#ef4444'  // red
+                };
+                return colors[crowdLevel] || colors[1];
             }
 
             getMarkerIcon(crowdLevel) {
@@ -688,6 +945,10 @@
                 const heartIcon = isFavorited ? 'fas fa-heart' : 'far fa-heart';
                 const heartColor = isFavorited ? 'favorited' : '';
 
+                // Calculate gauge percentage (1 = empty/green, 5 = very busy/red)
+                // Invert so 1 = 100% (green) and 5 = 0% (red)
+                const gaugePercentage = ((6 - court.currentStatus.crowdLevel) / 5) * 100;
+                
                 card.innerHTML = `
                     <div class="court-card-header">
                         <div>
@@ -699,6 +960,17 @@
                             <button class="court-card-favorite-btn ${heartColor}" data-court-id="${court.id}" title="${isFavorited ? 'Remove from favorites' : 'Add to favorites'}">
                                 <i class="${heartIcon}"></i>
                             </button>
+                        </div>
+                    </div>
+                    <div class="court-card-gauge-container">
+                        <div class="court-card-gauge">
+                            <div class="gauge-background"></div>
+                            <div class="gauge-fill" style="width: ${gaugePercentage}%; background: linear-gradient(to right, #ef4444 0%, #f97316 25%, #f59e0b 50%, #84cc16 75%, #10b981 100%);"></div>
+                            <div class="gauge-needle" style="left: ${gaugePercentage}%;"></div>
+                        </div>
+                        <div class="gauge-labels">
+                            <span class="gauge-label-left">Busy</span>
+                            <span class="gauge-label-right">Free</span>
                         </div>
                     </div>
                     <div class="court-card-status">
@@ -884,11 +1156,42 @@
                     return;
                 }
 
+                // Update court status if it matches an existing court
+                const matchingCourt = this.courts.find(court => 
+                    court.name.toLowerCase() === locationName.toLowerCase() ||
+                    court.address.toLowerCase() === locationAddress.toLowerCase()
+                );
+
+                if (matchingCourt) {
+                    matchingCourt.currentStatus.crowdLevel = this.selectedCrowdLevel;
+                    matchingCourt.currentStatus.lastUpdated = new Date();
+                    matchingCourt.statusColor = this.getStatusColor(this.selectedCrowdLevel);
+                    matchingCourt.statusText = this.getStatusText(this.selectedCrowdLevel);
+                    
+                    // Update gauge
+                    this.updateCourtGauge(matchingCourt);
+                    
+                    // Update court list
+                    this.updateCourtList();
+                    this.updateFavoriteCourtsList();
+                }
+
                 this.showToast(`Location update submitted: ${locationName} at ${locationAddress} (Demo mode)`, 'success');
                 this.hideCheckInModal();
                 if (this.currentCourt) {
                     this.loadRecentCheckIns();
                 }
+            }
+
+            getStatusText(crowdLevel) {
+                const texts = {
+                    1: 'Empty',
+                    2: 'Light',
+                    3: 'Moderate',
+                    4: 'Busy',
+                    5: 'Very Busy'
+                };
+                return texts[crowdLevel] || 'Unknown';
             }
 
             toggleFavorite() {
@@ -1033,6 +1336,7 @@
                     this.loadProfileData();
                 } else if (pageName === 'analytics') {
                     this.loadAnalyticsData();
+                    this.updatePremiumLock();
                 }
             }
 
@@ -1248,6 +1552,17 @@
             }
 
             handleDemoLogin() {
+                // Try Google Sign-In first if available
+                if (typeof gapi !== 'undefined' && gapi.auth2) {
+                    const authInstance = gapi.auth2.getAuthInstance();
+                    if (authInstance && authInstance.isSignedIn.get()) {
+                        const googleUser = authInstance.currentUser.get();
+                        onSignIn(googleUser);
+                        return;
+                    }
+                }
+                
+                // Fallback to demo login
                 const mockUser = {
                     id: 'demo-user-123',
                     name: 'Demo User',
@@ -1262,8 +1577,34 @@
                 this.updateAuthUI();
                 this.showToast('Signed in successfully! (Demo mode)', 'success');
             }
+            
+            handleGoogleSignIn(user) {
+                this.currentUser = {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    profilePicture: user.imageUrl,
+                    totalCheckIns: 0,
+                    reputationScore: 0,
+                    badges: []
+                };
+                this.updateAuthUI();
+                this.showToast(`Welcome, ${user.name}!`, 'success');
+                
+                // TODO: In production, verify the ID token on the server
+                // const idToken = googleUser.getAuthResponse().id_token;
+                // Send to backend for verification
+            }
 
             logout() {
+                // Sign out from Google if signed in
+                if (typeof gapi !== 'undefined' && gapi.auth2) {
+                    const auth2 = gapi.auth2.getAuthInstance();
+                    if (auth2) {
+                        auth2.signOut();
+                    }
+                }
+                
                 this.currentUser = null;
                 this.updateAuthUI();
                 this.showToast('Signed out successfully', 'success');
@@ -1315,6 +1656,46 @@
                 setTimeout(() => {
                     toast.remove();
                 }, 5000);
+            }
+
+            unlockPremium() {
+                this.isPremium = true;
+                this.savePremiumStatus();
+                this.updatePremiumLock();
+                this.showToast('Premium unlocked! Enjoy advanced analytics.', 'success');
+            }
+
+            updatePremiumLock() {
+                const overlay = document.getElementById('premiumLockOverlay');
+                const content = document.getElementById('analyticsContent');
+                
+                if (this.isPremium) {
+                    overlay.classList.add('hidden');
+                    content.classList.remove('hidden');
+                } else {
+                    overlay.classList.remove('hidden');
+                    content.classList.add('hidden');
+                }
+            }
+
+            updateCourtGauge(court) {
+                // This will be called when court status updates
+                // Find the court card and update its gauge
+                const courtCards = document.querySelectorAll('.court-card');
+                courtCards.forEach(card => {
+                    const favoriteBtn = card.querySelector('.court-card-favorite-btn');
+                    if (favoriteBtn && favoriteBtn.dataset.courtId === court.id) {
+                        const gaugePercentage = ((6 - court.currentStatus.crowdLevel) / 5) * 100;
+                        const gaugeFill = card.querySelector('.gauge-fill');
+                        const gaugeNeedle = card.querySelector('.gauge-needle');
+                        if (gaugeFill) {
+                            gaugeFill.style.width = `${gaugePercentage}%`;
+                        }
+                        if (gaugeNeedle) {
+                            gaugeNeedle.style.left = `${gaugePercentage}%`;
+                        }
+                    }
+                });
             }
         }
 
