@@ -366,9 +366,23 @@
             <div id="analyticsView" class="page">
                 <div class="analytics-header">
                     <h2>Court Analytics</h2>
-                    <select id="analyticsCourtSelect">
-                        <option value="">Select a court...</option>
-                    </select>
+                    <div class="court-selector-container">
+                        <div class="court-selector-wrapper">
+                            <div class="court-selector-input" id="courtSelectorInput">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="courtSearchInput" placeholder="Search courts..." autocomplete="off">
+                                <i class="fas fa-chevron-down" id="courtSelectorArrow"></i>
+                            </div>
+                            <div class="court-selector-dropdown" id="courtSelectorDropdown" style="display: none;">
+                                <div class="court-selector-list" id="courtSelectorList">
+                                    <!-- Court options will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                        <select id="analyticsCourtSelect" style="display: none;">
+                            <option value="">Select a court...</option>
+                        </select>
+                    </div>
                 </div>
                 <!-- Premium Lock Overlay -->
                 <div id="premiumLockOverlay" class="premium-lock-overlay">
@@ -1726,15 +1740,120 @@
             }
 
             loadAnalyticsData() {
-                // Load courts for dropdown
+                // Load courts for both the hidden select and the dynamic dropdown
                 const select = document.getElementById('analyticsCourtSelect');
+                const dropdownList = document.getElementById('courtSelectorList');
+                const searchInput = document.getElementById('courtSearchInput');
+                
+                // Clear existing options
                 select.innerHTML = '<option value="">Select a court...</option>';
+                dropdownList.innerHTML = '';
+                
+                // Populate both dropdowns
                 this.courts.forEach(court => {
+                    // Hidden select for form compatibility
                     const option = document.createElement('option');
                     option.value = court.id;
                     option.textContent = court.name;
                     select.appendChild(option);
+                    
+                    // Dynamic dropdown item
+                    const dropdownItem = document.createElement('div');
+                    dropdownItem.className = 'court-selector-item';
+                    dropdownItem.dataset.courtId = court.id;
+                    dropdownItem.innerHTML = `
+                        <div class="court-selector-item-content">
+                            <div class="court-selector-item-main">
+                                <span class="court-selector-item-name">${court.name}</span>
+                                <span class="court-selector-item-status ${court.statusColor}">
+                                    <i class="fas fa-circle"></i>
+                                    ${court.statusText}
+                                </span>
+                            </div>
+                            <div class="court-selector-item-details">
+                                <span class="court-selector-item-sport">${court.sportType}</span>
+                                <span class="court-selector-item-rating">
+                                    <i class="fas fa-star"></i>
+                                    ${court.rating.average.toFixed(1)}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Add click handler
+                    dropdownItem.addEventListener('click', () => {
+                        this.selectCourtForAnalytics(court.id, court.name);
+                    });
+                    
+                    dropdownList.appendChild(dropdownItem);
                 });
+                
+                // Setup search functionality
+                this.setupCourtSelectorSearch();
+            }
+            
+            setupCourtSelectorSearch() {
+                const searchInput = document.getElementById('courtSearchInput');
+                const dropdown = document.getElementById('courtSelectorDropdown');
+                const dropdownList = document.getElementById('courtSelectorList');
+                const selectorInput = document.getElementById('courtSelectorInput');
+                const arrow = document.getElementById('courtSelectorArrow');
+                
+                // Toggle dropdown on input click
+                selectorInput.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const isOpen = dropdown.style.display !== 'none';
+                    dropdown.style.display = isOpen ? 'none' : 'block';
+                    arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+                    if (!isOpen) {
+                        searchInput.focus();
+                    }
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!selectorInput.contains(e.target) && !dropdown.contains(e.target)) {
+                        dropdown.style.display = 'none';
+                        arrow.style.transform = 'rotate(0deg)';
+                    }
+                });
+                
+                // Search/filter functionality
+                searchInput.addEventListener('input', (e) => {
+                    const query = e.target.value.toLowerCase().trim();
+                    const items = dropdownList.querySelectorAll('.court-selector-item');
+                    
+                    items.forEach(item => {
+                        const name = item.querySelector('.court-selector-item-name').textContent.toLowerCase();
+                        const sport = item.querySelector('.court-selector-item-sport').textContent.toLowerCase();
+                        const matches = name.includes(query) || sport.includes(query);
+                        item.style.display = matches ? 'flex' : 'none';
+                    });
+                });
+                
+                // Prevent dropdown from closing when clicking inside
+                dropdown.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                });
+            }
+            
+            selectCourtForAnalytics(courtId, courtName) {
+                // Update hidden select
+                const select = document.getElementById('analyticsCourtSelect');
+                select.value = courtId;
+                
+                // Update search input display
+                const searchInput = document.getElementById('courtSearchInput');
+                searchInput.value = courtName;
+                
+                // Close dropdown
+                const dropdown = document.getElementById('courtSelectorDropdown');
+                const arrow = document.getElementById('courtSelectorArrow');
+                dropdown.style.display = 'none';
+                arrow.style.transform = 'rotate(0deg)';
+                
+                // Load analytics for selected court
+                this.loadAnalytics();
             }
 
             loadAnalytics() {
