@@ -1682,8 +1682,15 @@
 
             loadProfileData() {
                 if (!this.currentUser) {
-                    document.getElementById('profileView').innerHTML = 
-                        '<div class="text-center"><p>Please sign in to view your profile</p></div>';
+                    // Show login message without destroying the profile structure
+                    document.getElementById('profileName').textContent = 'Guest User';
+                    document.getElementById('profileEmail').textContent = 'Please sign in to view your profile';
+                    document.getElementById('profileAvatar').src = '';
+                    document.getElementById('profileCheckIns').textContent = '0';
+                    document.getElementById('profileReputation').textContent = '0';
+                    document.getElementById('profileBadges').textContent = '0';
+                    document.getElementById('profileCheckins').innerHTML = '<p class="text-center">Please sign in to view your check-ins</p>';
+                    document.getElementById('profileFavorites').innerHTML = '<p class="text-center">Please sign in to view your favorites</p>';
                     return;
                 }
 
@@ -1698,23 +1705,58 @@
                 document.getElementById('profileReputation').textContent = user.reputationScore;
                 document.getElementById('profileBadges').textContent = user.badges.length;
 
-                // Demo user check-ins
+                // Demo user check-ins (Julius Caesar's pickleball check-ins)
                 const demoUserCheckIns = [
                     {
-                        court: { name: 'Golden Gate Park Basketball' },
-                        crowdLevel: 3,
-                        comment: 'Great game today!',
+                        court: { name: 'Hillcrest Park' },
+                        crowdLevel: 5,
+                        comment: 'Very busy today, but great competition!',
                         createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) // 1 day ago
                     },
                     {
-                        court: { name: 'Mission Dolores Tennis' },
-                        crowdLevel: 2,
-                        comment: 'Perfect weather for tennis',
+                        court: { name: 'Clyde Recreation Center' },
+                        crowdLevel: 4,
+                        comment: 'Excellent indoor courts, well maintained',
                         createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) // 3 days ago
+                    },
+                    {
+                        court: { name: 'Quail Orchard Park' },
+                        crowdLevel: 3,
+                        comment: 'Perfect weather for pickleball',
+                        createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000) // 5 days ago
+                    },
+                    {
+                        court: { name: 'Sharon Park' },
+                        crowdLevel: 3,
+                        comment: 'Good session with friends',
+                        createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // 7 days ago
                     }
                 ];
 
                 this.updateUserCheckIns(demoUserCheckIns);
+                
+                // Update profile favorites
+                this.updateProfileFavorites();
+            }
+            
+            updateProfileFavorites() {
+                const profileFavoritesContainer = document.getElementById('profileFavorites');
+                profileFavoritesContainer.innerHTML = '';
+                
+                if (this.favoriteCourts.length === 0) {
+                    profileFavoritesContainer.innerHTML = '<p>No favorite courts yet. Click the heart icon on any court to add it to your favorites.</p>';
+                    return;
+                }
+                
+                // Get favorite court objects from the courts array
+                const favoriteCourtObjects = this.courts.filter(court => 
+                    this.favoriteCourts.includes(court.id)
+                );
+                
+                favoriteCourtObjects.forEach(court => {
+                    const courtCard = this.createCourtCard(court, true);
+                    profileFavoritesContainer.appendChild(courtCard);
+                });
             }
 
             updateUserCheckIns(checkIns) {
@@ -2184,15 +2226,15 @@
                     }
                 }
                 
-                // Fallback to demo login
+                // Fallback to demo login - Julius Caesar
                 const mockUser = {
                     id: 'demo-user-123',
-                    name: 'Demo User',
-                    email: 'demo@courtcheck.com',
-                    profilePicture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-                    totalCheckIns: 15,
-                    reputationScore: 120,
-                    badges: ['consistent', 'helpful', 'explorer']
+                    name: 'Julius Caesar',
+                    email: 'julius.caesar@courtcheck.com',
+                    profilePicture: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face&auto=format',
+                    totalCheckIns: 18,
+                    reputationScore: 145,
+                    badges: ['consistent', 'helpful', 'explorer', 'champion']
                 };
 
                 this.currentUser = mockUser;
@@ -2241,9 +2283,21 @@
                     userMenu.classList.remove('hidden');
                     document.getElementById('userName').textContent = this.currentUser.name;
                     document.getElementById('userAvatar').src = this.currentUser.profilePicture;
+                    
+                    // If we're on the profile page, update it immediately
+                    const profileView = document.getElementById('profileView');
+                    if (profileView && profileView.classList.contains('active')) {
+                        this.loadProfileData();
+                    }
                 } else {
                     loginBtn.classList.remove('hidden');
                     userMenu.classList.add('hidden');
+                    
+                    // If we're on the profile page, show login message
+                    const profileView = document.getElementById('profileView');
+                    if (profileView && profileView.classList.contains('active')) {
+                        this.loadProfileData();
+                    }
                 }
             }
 
