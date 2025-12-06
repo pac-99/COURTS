@@ -193,7 +193,7 @@
                 <!-- Store Locator Component -->
                 <div id="storeLocatorContainer" class="store-locator-container" style="display: none;">
                     <h3>Find Courts Nearby</h3>
-                    <gmpx-api-loader key="YOUR_API_KEY_HERE" solution-channel="GMP_QB_locatorplus_v11_c"></gmpx-api-loader>
+                    <gmpx-api-loader id="store-locator-api-loader" key="YOUR_API_KEY_HERE" solution-channel="GMP_QB_locatorplus_v11_c"></gmpx-api-loader>
                     <gmpx-store-locator map-id="DEMO_MAP_ID"></gmpx-store-locator>
                 </div>
             </div>
@@ -266,7 +266,18 @@
                             </div>
                             <div class="form-group">
                                 <label for="locationAddress">Address</label>
-                                <input type="text" id="locationAddress" placeholder="Enter address" required>
+                                <gmpx-api-loader id="place-picker-api-loader" key="YOUR_API_KEY_HERE" solution-channel="GMP_QB_placepicker_v1_c"></gmpx-api-loader>
+                                <gmp-place-picker id="place-picker" placeholder="Enter address" required></gmp-place-picker>
+                                <input type="text" id="locationAddress" placeholder="Enter address" style="display: none;" required>
+                            </div>
+                            <!-- Place Picker Map and Info Window (hidden by default, shown when place is selected) -->
+                            <div id="place-picker-map-container" style="display: none; margin-top: 1rem;">
+                                <gmp-map id="place-picker-map" center="37.7749,-122.4194" zoom="12" style="height: 300px; width: 100%;"></gmp-map>
+                                <gmp-advanced-marker id="marker" position="37.7749,-122.4194"></gmp-advanced-marker>
+                                <div id="infowindow-content" style="display: none;">
+                                    <div id="place-name"></div>
+                                    <div id="place-address"></div>
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label for="crowdLevel">How busy is the court?</label>
@@ -461,8 +472,13 @@
         };
         
         // Initialize Store Locator when DOM is ready
-        // This waits for the custom element to be defined before configuring
         document.addEventListener('DOMContentLoaded', async () => {
+            // Set API key for store locator loader
+            const apiLoader = document.getElementById('store-locator-api-loader');
+            if (apiLoader && typeof GOOGLE_MAPS_API_KEY !== 'undefined' && GOOGLE_MAPS_API_KEY !== "YOUR_API_KEY_HERE") {
+                apiLoader.setAttribute('key', GOOGLE_MAPS_API_KEY);
+            }
+            
             // Check if API key is configured
             if (!GOOGLE_MAPS_API_KEY || GOOGLE_MAPS_API_KEY === "YOUR_API_KEY_HERE") {
                 console.warn('Store Locator: Google Maps API key not configured.');
@@ -474,12 +490,91 @@
                 await customElements.whenDefined('gmpx-store-locator');
                 const locator = document.querySelector('gmpx-store-locator');
                 if (locator) {
-                    // Apply the configuration to the store locator component
                     locator.configureFromQuickBuilder(CONFIGURATION);
                 }
             } catch (error) {
                 console.error('Error initializing store locator:', error);
             }
+        });
+    </script>
+    
+    <!-- Place Picker Autofill API -->
+    <script>
+        /**
+         * @license
+         * Copyright 2024 Google LLC. All Rights Reserved.
+         * SPDX-License-Identifier: Apache-2.0
+         */
+        async function initPlacePicker() {
+            await customElements.whenDefined('gmp-map');
+            
+            const map = document.querySelector("#place-picker-map");
+            const marker = document.getElementById("marker");
+            const placePicker = document.getElementById("place-picker");
+            const mapContainer = document.getElementById("place-picker-map-container");
+            const locationAddressInput = document.getElementById("locationAddress");
+            const infowindowContent = document.getElementById("infowindow-content");
+            
+            if (!map || !marker || !placePicker) {
+                console.warn('Place picker elements not found');
+                return;
+            }
+            
+            // Wait for Google Maps API to be available
+            if (typeof google === 'undefined' || !google.maps) {
+                console.warn('Google Maps API not loaded yet');
+                return;
+            }
+            
+            const infowindow = new google.maps.InfoWindow();
+            map.innerMap.setOptions({mapTypeControl: false});
+            infowindow.setContent(infowindowContent);
+            
+            placePicker.addEventListener('gmpx-placechange', () => {
+                const place = placePicker.value;
+                
+                if (!place.location) {
+                    window.alert("No details available for input: '" + place.name + "'");
+                    infowindow.close();
+                    marker.position = null;
+                    mapContainer.style.display = 'none';
+                    return;
+                }
+                
+                // Show map container when place is selected
+                mapContainer.style.display = 'block';
+                
+                // Update the hidden address input with the formatted address
+                if (locationAddressInput) {
+                    locationAddressInput.value = place.formattedAddress || place.name;
+                }
+                
+                if (place.viewport) {
+                    map.innerMap.fitBounds(place.viewport);
+                } else {
+                    map.center = place.location;
+                    map.zoom = 17;
+                }
+                
+                marker.position = place.location;
+                
+                // Update info window content
+                const placeNameEl = document.getElementById("place-name");
+                const placeAddressEl = document.getElementById("place-address");
+                if (placeNameEl) placeNameEl.textContent = place.displayName;
+                if (placeAddressEl) placeAddressEl.textContent = place.formattedAddress;
+                
+                infowindow.open(map.innerMap, marker);
+            });
+        }
+        
+        // Set API key for place picker loader
+        document.addEventListener('DOMContentLoaded', () => {
+            const apiLoader = document.getElementById('place-picker-api-loader');
+            if (apiLoader && typeof GOOGLE_MAPS_API_KEY !== 'undefined' && GOOGLE_MAPS_API_KEY !== "YOUR_API_KEY_HERE") {
+                apiLoader.setAttribute('key', GOOGLE_MAPS_API_KEY);
+            }
+            initPlacePicker();
         });
     </script>
     
@@ -878,7 +973,7 @@
                     const defaultLocation = { lat: 37.7749, lng: -122.4194 };
                     
                     // Create a new map instance in the #map container
-                    this.map = new Map(document.getElementById('map'), {
+                    this.map = new Map(document.getElementById("map"), {
                         center: defaultLocation,
                         zoom: 12,
                         mapId: typeof GOOGLE_MAP_ID !== 'undefined' && GOOGLE_MAP_ID !== "DEMO_MAP_ID" ? GOOGLE_MAP_ID : undefined,
@@ -1283,11 +1378,29 @@
                 // Clear location fields
                 document.getElementById('locationName').value = '';
                 document.getElementById('locationAddress').value = '';
+                // Clear place picker
+                const placePicker = document.getElementById('place-picker');
+                if (placePicker) {
+                    placePicker.value = null;
+                }
+                // Hide map container
+                const mapContainer = document.getElementById('place-picker-map-container');
+                if (mapContainer) {
+                    mapContainer.style.display = 'none';
+                }
             }
 
             submitCheckIn() {
                 const locationName = document.getElementById('locationName').value.trim();
-                const locationAddress = document.getElementById('locationAddress').value.trim();
+                const placePicker = document.getElementById('place-picker');
+                let locationAddress = document.getElementById('locationAddress').value.trim();
+                
+                // If place picker has a value, use it
+                if (placePicker && placePicker.value && placePicker.value.formattedAddress) {
+                    locationAddress = placePicker.value.formattedAddress;
+                    // Also update the hidden input
+                    document.getElementById('locationAddress').value = locationAddress;
+                }
 
                 if (!locationName || !locationAddress) {
                     this.showToast('Please fill in location name and address', 'warning');
