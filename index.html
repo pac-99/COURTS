@@ -1860,39 +1860,216 @@
                 const courtId = document.getElementById('analyticsCourtSelect').value;
                 if (!courtId) return;
 
-                // Demo analytics data
-                this.updateAnalyticsCharts({
-                    hourlyPatterns: [
-                        { hour: 6, averageCrowdLevel: 1.2, checkInCount: 2 },
-                        { hour: 7, averageCrowdLevel: 1.5, checkInCount: 3 },
-                        { hour: 8, averageCrowdLevel: 2.1, checkInCount: 5 },
-                        { hour: 9, averageCrowdLevel: 2.8, checkInCount: 8 },
-                        { hour: 10, averageCrowdLevel: 3.2, checkInCount: 12 },
-                        { hour: 11, averageCrowdLevel: 3.5, checkInCount: 15 },
-                        { hour: 12, averageCrowdLevel: 3.8, checkInCount: 18 },
-                        { hour: 13, averageCrowdLevel: 4.1, checkInCount: 20 },
-                        { hour: 14, averageCrowdLevel: 4.3, checkInCount: 22 },
-                        { hour: 15, averageCrowdLevel: 4.2, checkInCount: 21 },
-                        { hour: 16, averageCrowdLevel: 3.9, checkInCount: 19 },
-                        { hour: 17, averageCrowdLevel: 3.6, checkInCount: 16 },
-                        { hour: 18, averageCrowdLevel: 3.2, checkInCount: 13 },
-                        { hour: 19, averageCrowdLevel: 2.8, checkInCount: 10 },
-                        { hour: 20, averageCrowdLevel: 2.1, checkInCount: 6 },
-                        { hour: 21, averageCrowdLevel: 1.5, checkInCount: 3 }
-                    ],
-                    crowdDistribution: [
-                        { _id: 1, count: 15 },
-                        { _id: 2, count: 25 },
-                        { _id: 3, count: 30 },
-                        { _id: 4, count: 20 },
-                        { _id: 5, count: 10 }
-                    ],
-                    summary: {
-                        totalCheckIns: 100,
-                        averageCrowdLevel: 2.8,
-                        peakHour: 14
+                // Get unique analytics data for each court
+                const analyticsData = this.getCourtAnalyticsData(courtId);
+                this.updateAnalyticsCharts(analyticsData);
+            }
+            
+            getCourtAnalyticsData(courtId) {
+                // Unique analytics data for each court based on their characteristics
+                const dataSets = {
+                    'court1': {
+                        // Hillcrest Park - Very Busy
+                        hourlyPatterns: [
+                            { hour: 6, averageCrowdLevel: 3.5, checkInCount: 8 },
+                            { hour: 7, averageCrowdLevel: 4.2, checkInCount: 15 },
+                            { hour: 8, averageCrowdLevel: 4.8, checkInCount: 22 },
+                            { hour: 9, averageCrowdLevel: 4.9, checkInCount: 28 },
+                            { hour: 10, averageCrowdLevel: 5.0, checkInCount: 32 },
+                            { hour: 11, averageCrowdLevel: 4.9, checkInCount: 30 },
+                            { hour: 12, averageCrowdLevel: 4.8, checkInCount: 35 },
+                            { hour: 13, averageCrowdLevel: 4.7, checkInCount: 33 },
+                            { hour: 14, averageCrowdLevel: 4.9, checkInCount: 38 },
+                            { hour: 15, averageCrowdLevel: 5.0, checkInCount: 40 },
+                            { hour: 16, averageCrowdLevel: 4.8, checkInCount: 36 },
+                            { hour: 17, averageCrowdLevel: 4.6, checkInCount: 32 },
+                            { hour: 18, averageCrowdLevel: 4.4, checkInCount: 28 },
+                            { hour: 19, averageCrowdLevel: 4.2, checkInCount: 24 },
+                            { hour: 20, averageCrowdLevel: 3.8, checkInCount: 18 },
+                            { hour: 21, averageCrowdLevel: 3.2, checkInCount: 12 }
+                        ],
+                        crowdDistribution: [
+                            { _id: 1, count: 5 },
+                            { _id: 2, count: 12 },
+                            { _id: 3, count: 25 },
+                            { _id: 4, count: 35 },
+                            { _id: 5, count: 48 }
+                        ],
+                        summary: {
+                            totalCheckIns: 125,
+                            averageCrowdLevel: 4.3,
+                            peakHour: 15
+                        }
+                    },
+                    'court2': {
+                        // Rotary Park - Busy
+                        hourlyPatterns: [
+                            { hour: 6, averageCrowdLevel: 2.0, checkInCount: 4 },
+                            { hour: 7, averageCrowdLevel: 2.8, checkInCount: 8 },
+                            { hour: 8, averageCrowdLevel: 3.5, checkInCount: 12 },
+                            { hour: 9, averageCrowdLevel: 3.8, checkInCount: 16 },
+                            { hour: 10, averageCrowdLevel: 4.0, checkInCount: 20 },
+                            { hour: 11, averageCrowdLevel: 4.2, checkInCount: 22 },
+                            { hour: 12, averageCrowdLevel: 4.3, checkInCount: 25 },
+                            { hour: 13, averageCrowdLevel: 4.4, checkInCount: 28 },
+                            { hour: 14, averageCrowdLevel: 4.5, checkInCount: 30 },
+                            { hour: 15, averageCrowdLevel: 4.3, checkInCount: 27 },
+                            { hour: 16, averageCrowdLevel: 4.1, checkInCount: 24 },
+                            { hour: 17, averageCrowdLevel: 3.8, checkInCount: 20 },
+                            { hour: 18, averageCrowdLevel: 3.5, checkInCount: 16 },
+                            { hour: 19, averageCrowdLevel: 3.0, checkInCount: 12 },
+                            { hour: 20, averageCrowdLevel: 2.5, checkInCount: 8 },
+                            { hour: 21, averageCrowdLevel: 2.0, checkInCount: 5 }
+                        ],
+                        crowdDistribution: [
+                            { _id: 1, count: 8 },
+                            { _id: 2, count: 18 },
+                            { _id: 3, count: 32 },
+                            { _id: 4, count: 42 },
+                            { _id: 5, count: 15 }
+                        ],
+                        summary: {
+                            totalCheckIns: 115,
+                            averageCrowdLevel: 3.6,
+                            peakHour: 14
+                        }
+                    },
+                    'court3': {
+                        // Quail Orchard Park - Moderate
+                        hourlyPatterns: [
+                            { hour: 6, averageCrowdLevel: 1.5, checkInCount: 3 },
+                            { hour: 7, averageCrowdLevel: 2.0, checkInCount: 5 },
+                            { hour: 8, averageCrowdLevel: 2.5, checkInCount: 8 },
+                            { hour: 9, averageCrowdLevel: 2.8, checkInCount: 10 },
+                            { hour: 10, averageCrowdLevel: 3.0, checkInCount: 12 },
+                            { hour: 11, averageCrowdLevel: 3.2, checkInCount: 14 },
+                            { hour: 12, averageCrowdLevel: 3.4, checkInCount: 16 },
+                            { hour: 13, averageCrowdLevel: 3.5, checkInCount: 18 },
+                            { hour: 14, averageCrowdLevel: 3.6, checkInCount: 20 },
+                            { hour: 15, averageCrowdLevel: 3.4, checkInCount: 18 },
+                            { hour: 16, averageCrowdLevel: 3.2, checkInCount: 15 },
+                            { hour: 17, averageCrowdLevel: 3.0, checkInCount: 13 },
+                            { hour: 18, averageCrowdLevel: 2.8, checkInCount: 11 },
+                            { hour: 19, averageCrowdLevel: 2.5, checkInCount: 8 },
+                            { hour: 20, averageCrowdLevel: 2.0, checkInCount: 5 },
+                            { hour: 21, averageCrowdLevel: 1.5, checkInCount: 3 }
+                        ],
+                        crowdDistribution: [
+                            { _id: 1, count: 18 },
+                            { _id: 2, count: 28 },
+                            { _id: 3, count: 42 },
+                            { _id: 4, count: 22 },
+                            { _id: 5, count: 5 }
+                        ],
+                        summary: {
+                            totalCheckIns: 115,
+                            averageCrowdLevel: 2.9,
+                            peakHour: 14
+                        }
+                    },
+                    'court4': {
+                        // Bonneville Park - Empty
+                        hourlyPatterns: [
+                            { hour: 6, averageCrowdLevel: 1.0, checkInCount: 1 },
+                            { hour: 7, averageCrowdLevel: 1.2, checkInCount: 2 },
+                            { hour: 8, averageCrowdLevel: 1.3, checkInCount: 3 },
+                            { hour: 9, averageCrowdLevel: 1.4, checkInCount: 4 },
+                            { hour: 10, averageCrowdLevel: 1.5, checkInCount: 5 },
+                            { hour: 11, averageCrowdLevel: 1.6, checkInCount: 6 },
+                            { hour: 12, averageCrowdLevel: 1.7, checkInCount: 7 },
+                            { hour: 13, averageCrowdLevel: 1.8, checkInCount: 8 },
+                            { hour: 14, averageCrowdLevel: 1.9, checkInCount: 9 },
+                            { hour: 15, averageCrowdLevel: 1.8, checkInCount: 8 },
+                            { hour: 16, averageCrowdLevel: 1.7, checkInCount: 7 },
+                            { hour: 17, averageCrowdLevel: 1.6, checkInCount: 6 },
+                            { hour: 18, averageCrowdLevel: 1.5, checkInCount: 5 },
+                            { hour: 19, averageCrowdLevel: 1.4, checkInCount: 4 },
+                            { hour: 20, averageCrowdLevel: 1.3, checkInCount: 3 },
+                            { hour: 21, averageCrowdLevel: 1.2, checkInCount: 2 }
+                        ],
+                        crowdDistribution: [
+                            { _id: 1, count: 45 },
+                            { _id: 2, count: 32 },
+                            { _id: 3, count: 18 },
+                            { _id: 4, count: 8 },
+                            { _id: 5, count: 2 }
+                        ],
+                        summary: {
+                            totalCheckIns: 105,
+                            averageCrowdLevel: 1.6,
+                            peakHour: 14
+                        }
+                    },
+                    'court5': {
+                        // Sharon Park - Moderate
+                        hourlyPatterns: [
+                            { hour: 6, averageCrowdLevel: 1.8, checkInCount: 4 },
+                            { hour: 7, averageCrowdLevel: 2.2, checkInCount: 6 },
+                            { hour: 8, averageCrowdLevel: 2.6, checkInCount: 9 },
+                            { hour: 9, averageCrowdLevel: 2.9, checkInCount: 11 },
+                            { hour: 10, averageCrowdLevel: 3.1, checkInCount: 13 },
+                            { hour: 11, averageCrowdLevel: 3.3, checkInCount: 15 },
+                            { hour: 12, averageCrowdLevel: 3.4, checkInCount: 17 },
+                            { hour: 13, averageCrowdLevel: 3.5, checkInCount: 19 },
+                            { hour: 14, averageCrowdLevel: 3.6, checkInCount: 21 },
+                            { hour: 15, averageCrowdLevel: 3.5, checkInCount: 19 },
+                            { hour: 16, averageCrowdLevel: 3.3, checkInCount: 17 },
+                            { hour: 17, averageCrowdLevel: 3.1, checkInCount: 14 },
+                            { hour: 18, averageCrowdLevel: 2.9, checkInCount: 12 },
+                            { hour: 19, averageCrowdLevel: 2.6, checkInCount: 9 },
+                            { hour: 20, averageCrowdLevel: 2.2, checkInCount: 6 },
+                            { hour: 21, averageCrowdLevel: 1.8, checkInCount: 4 }
+                        ],
+                        crowdDistribution: [
+                            { _id: 1, count: 15 },
+                            { _id: 2, count: 25 },
+                            { _id: 3, count: 38 },
+                            { _id: 4, count: 28 },
+                            { _id: 5, count: 9 }
+                        ],
+                        summary: {
+                            totalCheckIns: 115,
+                            averageCrowdLevel: 3.0,
+                            peakHour: 14
+                        }
+                    },
+                    'court6': {
+                        // Clyde Recreation Center - Busy
+                        hourlyPatterns: [
+                            { hour: 6, averageCrowdLevel: 2.5, checkInCount: 6 },
+                            { hour: 7, averageCrowdLevel: 3.2, checkInCount: 10 },
+                            { hour: 8, averageCrowdLevel: 3.8, checkInCount: 15 },
+                            { hour: 9, averageCrowdLevel: 4.0, checkInCount: 18 },
+                            { hour: 10, averageCrowdLevel: 4.2, checkInCount: 22 },
+                            { hour: 11, averageCrowdLevel: 4.3, checkInCount: 24 },
+                            { hour: 12, averageCrowdLevel: 4.4, checkInCount: 26 },
+                            { hour: 13, averageCrowdLevel: 4.5, checkInCount: 28 },
+                            { hour: 14, averageCrowdLevel: 4.6, checkInCount: 30 },
+                            { hour: 15, averageCrowdLevel: 4.5, checkInCount: 28 },
+                            { hour: 16, averageCrowdLevel: 4.3, checkInCount: 25 },
+                            { hour: 17, averageCrowdLevel: 4.0, checkInCount: 22 },
+                            { hour: 18, averageCrowdLevel: 3.7, checkInCount: 19 },
+                            { hour: 19, averageCrowdLevel: 3.3, checkInCount: 15 },
+                            { hour: 20, averageCrowdLevel: 2.8, checkInCount: 11 },
+                            { hour: 21, averageCrowdLevel: 2.2, checkInCount: 7 }
+                        ],
+                        crowdDistribution: [
+                            { _id: 1, count: 6 },
+                            { _id: 2, count: 15 },
+                            { _id: 3, count: 28 },
+                            { _id: 4, count: 45 },
+                            { _id: 5, count: 21 }
+                        ],
+                        summary: {
+                            totalCheckIns: 115,
+                            averageCrowdLevel: 3.8,
+                            peakHour: 14
+                        }
                     }
-                });
+                };
+                
+                // Return data for the selected court, or default data if not found
+                return dataSets[courtId] || dataSets['court3'];
             }
 
             updateAnalyticsCharts(analytics) {
