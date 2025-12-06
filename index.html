@@ -422,31 +422,45 @@
         const CONFIGURATION = {
             locations: [
                 {
-                    title: "Golden Gate Park Basketball Courts",
-                    address1: "Golden Gate Park",
-                    address2: "San Francisco, CA 94117, USA",
-                    coords: { lat: 37.7694, lng: -122.4612 },
+                    title: "Hillcrest Park",
+                    address1: "Hillcrest Park",
+                    address2: "",
+                    coords: { lat: 37.7749, lng: -122.4194 },
                     placeId: ""  // TODO: Replace with real Google Maps Place ID if available
                 },
                 {
-                    title: "Mission Dolores Tennis Courts",
-                    address1: "Mission Dolores Park",
-                    address2: "San Francisco, CA 94114, USA",
-                    coords: { lat: 37.7599, lng: -122.4269 },
+                    title: "Rotary Park",
+                    address1: "Rotary Park",
+                    address2: "",
+                    coords: { lat: 37.7800, lng: -122.4100 },
                     placeId: ""
                 },
                 {
-                    title: "Presidio Pickleball Courts",
-                    address1: "Presidio",
-                    address2: "San Francisco, CA 94129, USA",
-                    coords: { lat: 37.7989, lng: -122.4662 },
+                    title: "Quail Orchard Park",
+                    address1: "Quail Orchard Park",
+                    address2: "",
+                    coords: { lat: 37.7700, lng: -122.4300 },
                     placeId: ""
                 },
                 {
-                    title: "Balboa Park Soccer Fields",
-                    address1: "Balboa Park",
-                    address2: "San Francisco, CA 94116, USA",
-                    coords: { lat: 37.7761, lng: -122.5042 },
+                    title: "Bonneville Park",
+                    address1: "Bonneville Park",
+                    address2: "",
+                    coords: { lat: 37.7750, lng: -122.4000 },
+                    placeId: ""
+                },
+                {
+                    title: "Sharon Park",
+                    address1: "Sharon Park",
+                    address2: "",
+                    coords: { lat: 37.7850, lng: -122.4200 },
+                    placeId: ""
+                },
+                {
+                    title: "Clyde Recreation Center",
+                    address1: "Clyde Recreation Center",
+                    address2: "",
+                    coords: { lat: 37.7700, lng: -122.4150 },
                     placeId: ""
                 }
             ],
@@ -688,12 +702,12 @@
                 return [
                     {
                         id: 'court1',
-                        name: 'Golden Gate Park Basketball Courts',
-                        description: 'Popular outdoor basketball courts in Golden Gate Park with 4 full courts and good lighting.',
+                        name: 'Hillcrest Park',
+                        description: 'Popular community park with multiple basketball courts and recreational facilities.',
                         location: {
-                            coordinates: [-122.4612, 37.7694]
+                            coordinates: [-122.4194, 37.7749]
                         },
-                        address: 'Golden Gate Park, San Francisco, CA',
+                        address: 'Hillcrest Park',
                         sportType: 'basketball',
                         amenities: ['lighting', 'parking', 'restrooms'],
                         operatingHours: {
@@ -701,85 +715,85 @@
                             close: '22:00'
                         },
                         currentStatus: {
-                            crowdLevel: 3,
+                            crowdLevel: 5,
                             lastUpdated: new Date(),
                             source: 'hybrid'
                         },
-                        statusColor: 'yellow',
-                        statusText: 'Moderate',
+                        statusColor: 'red',
+                        statusText: 'Very Busy',
                         rating: {
-                            average: 4.2,
-                            count: 45
+                            average: 4.3,
+                            count: 52
                         },
                         verified: true,
                         images: []
                     },
                     {
                         id: 'court2',
-                        name: 'Mission Dolores Tennis Courts',
-                        description: 'Well-maintained tennis courts with 6 courts available for public use.',
+                        name: 'Rotary Park',
+                        description: 'Well-maintained park with basketball courts and open recreational space.',
                         location: {
-                            coordinates: [-122.4269, 37.7599]
+                            coordinates: [-122.4100, 37.7800]
                         },
-                        address: 'Mission Dolores Park, San Francisco, CA',
-                        sportType: 'tennis',
-                        amenities: ['lighting', 'parking', 'water_fountain', 'seating'],
+                        address: 'Rotary Park',
+                        sportType: 'basketball',
+                        amenities: ['lighting', 'parking', 'water_fountain'],
                         operatingHours: {
                             open: '07:00',
                             close: '21:00'
                         },
                         currentStatus: {
-                            crowdLevel: 2,
+                            crowdLevel: 4,
                             lastUpdated: new Date(),
                             source: 'user'
                         },
-                        statusColor: 'green',
-                        statusText: 'Light',
+                        statusColor: 'red',
+                        statusText: 'Busy',
                         rating: {
-                            average: 4.5,
-                            count: 32
+                            average: 4.1,
+                            count: 38
                         },
                         verified: true,
                         images: []
                     },
                     {
                         id: 'court3',
-                        name: 'Presidio Pickleball Courts',
-                        description: 'New pickleball courts with 8 dedicated courts and equipment rental available.',
+                        name: 'Quail Orchard Park',
+                        description: 'Family-friendly park with basketball courts and playground facilities.',
                         location: {
-                            coordinates: [-122.4662, 37.7989]
+                            coordinates: [-122.4300, 37.7700]
                         },
-                        address: 'Presidio, San Francisco, CA',
-                        sportType: 'pickleball',
-                        amenities: ['lighting', 'parking', 'equipment_rental', 'seating', 'shade'],
+                        address: 'Quail Orchard Park',
+                        sportType: 'basketball',
+                        amenities: ['lighting', 'parking', 'restrooms', 'seating'],
                         operatingHours: {
                             open: '06:00',
                             close: '20:00'
                         },
                         currentStatus: {
-                            crowdLevel: 4,
+                            crowdLevel: 3,
                             lastUpdated: new Date(),
-                            source: 'ai'
+                            source: 'user'
                         },
-                        statusColor: 'red',
-                        statusText: 'Busy',
+                        statusColor: 'yellow',
+                        statusText: 'Moderate',
                         rating: {
-                            average: 4.7,
-                            count: 28
+                            average: 4.4,
+                            count: 29
                         },
                         verified: true,
                         images: []
                     },
                     {
                         id: 'court4',
-                        name: 'Balboa Park Soccer Fields',
-                        description: 'Large soccer fields perfect for pickup games and organized matches.',
+                        name: 'Bonneville Park',
+                        description: 'Quiet neighborhood park with basketball courts and picnic areas.',
                         location: {
-                            coordinates: [-122.5042, 37.7761]
+                            coordinates: [-122.4000, 37.7750]
                         },
-                        address: 'Balboa Park, San Francisco, CA',
-                        sportType: 'soccer',
-                        amenities: ['lighting', 'parking', 'restrooms', 'water_fountain'],
+                        address: 'Bonneville Park',
+                        sportType: 'basketball',
+                        amenities: ['parking', 'restrooms'],
                         operatingHours: {
                             open: '06:00',
                             close: '22:00'
@@ -793,6 +807,62 @@
                         statusText: 'Empty',
                         rating: {
                             average: 4.0,
+                            count: 24
+                        },
+                        verified: true,
+                        images: []
+                    },
+                    {
+                        id: 'court5',
+                        name: 'Sharon Park',
+                        description: 'Community park featuring basketball courts and walking trails.',
+                        location: {
+                            coordinates: [-122.4200, 37.7850]
+                        },
+                        address: 'Sharon Park',
+                        sportType: 'basketball',
+                        amenities: ['lighting', 'parking', 'water_fountain', 'seating'],
+                        operatingHours: {
+                            open: '07:00',
+                            close: '21:00'
+                        },
+                        currentStatus: {
+                            crowdLevel: 3,
+                            lastUpdated: new Date(),
+                            source: 'hybrid'
+                        },
+                        statusColor: 'yellow',
+                        statusText: 'Moderate',
+                        rating: {
+                            average: 4.2,
+                            count: 41
+                        },
+                        verified: true,
+                        images: []
+                    },
+                    {
+                        id: 'court6',
+                        name: 'Clyde Recreation Center',
+                        description: 'Full-service recreation center with multiple basketball courts and facilities.',
+                        location: {
+                            coordinates: [-122.4150, 37.7700]
+                        },
+                        address: 'Clyde Recreation Center',
+                        sportType: 'basketball',
+                        amenities: ['lighting', 'parking', 'restrooms', 'water_fountain', 'seating', 'indoor_courts'],
+                        operatingHours: {
+                            open: '06:00',
+                            close: '22:00'
+                        },
+                        currentStatus: {
+                            crowdLevel: 4,
+                            lastUpdated: new Date(),
+                            source: 'ai'
+                        },
+                        statusColor: 'red',
+                        statusText: 'Busy',
+                        rating: {
+                            average: 4.6,
                             count: 67
                         },
                         verified: true,
