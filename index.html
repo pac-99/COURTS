@@ -380,8 +380,8 @@
                             </div>
                         </div>
                         <select id="analyticsCourtSelect" style="display: none;">
-                            <option value="">Select a court...</option>
-                        </select>
+                        <option value="">Select a court...</option>
+                    </select>
                     </div>
                 </div>
                 <!-- Premium Lock Overlay -->
@@ -717,13 +717,13 @@
                     {
                         id: 'court1',
                         name: 'Hillcrest Park',
-                        description: 'Popular community park with multiple basketball courts and recreational facilities.',
+                        description: 'Popular community park with multiple pickleball courts and recreational facilities.',
                         location: {
                             coordinates: [-122.4194, 37.7749]
                         },
                         address: 'Hillcrest Park',
-                        sportType: 'basketball',
-                        amenities: ['lighting', 'parking', 'restrooms'],
+                        sportType: 'pickleball',
+                        amenities: ['lighting', 'parking', 'restrooms', 'nets', 'equipment_rental'],
                         operatingHours: {
                             open: '06:00',
                             close: '22:00'
@@ -745,13 +745,13 @@
                     {
                         id: 'court2',
                         name: 'Rotary Park',
-                        description: 'Well-maintained park with basketball courts and open recreational space.',
+                        description: 'Well-maintained park with pickleball courts and open recreational space.',
                         location: {
                             coordinates: [-122.4100, 37.7800]
                         },
                         address: 'Rotary Park',
-                        sportType: 'basketball',
-                        amenities: ['lighting', 'parking', 'water_fountain'],
+                        sportType: 'pickleball',
+                        amenities: ['lighting', 'parking', 'water_fountain', 'nets'],
                         operatingHours: {
                             open: '07:00',
                             close: '21:00'
@@ -773,13 +773,13 @@
                     {
                         id: 'court3',
                         name: 'Quail Orchard Park',
-                        description: 'Family-friendly park with basketball courts and playground facilities.',
+                        description: 'Family-friendly park with pickleball courts and playground facilities.',
                         location: {
                             coordinates: [-122.4300, 37.7700]
                         },
                         address: 'Quail Orchard Park',
-                        sportType: 'basketball',
-                        amenities: ['lighting', 'parking', 'restrooms', 'seating'],
+                        sportType: 'pickleball',
+                        amenities: ['lighting', 'parking', 'restrooms', 'seating', 'nets'],
                         operatingHours: {
                             open: '06:00',
                             close: '20:00'
@@ -801,13 +801,13 @@
                     {
                         id: 'court4',
                         name: 'Bonneville Park',
-                        description: 'Quiet neighborhood park with basketball courts and picnic areas.',
+                        description: 'Quiet neighborhood park with pickleball courts and picnic areas.',
                         location: {
                             coordinates: [-122.4000, 37.7750]
                         },
                         address: 'Bonneville Park',
-                        sportType: 'basketball',
-                        amenities: ['parking', 'restrooms'],
+                        sportType: 'pickleball',
+                        amenities: ['parking', 'restrooms', 'nets'],
                         operatingHours: {
                             open: '06:00',
                             close: '22:00'
@@ -829,13 +829,13 @@
                     {
                         id: 'court5',
                         name: 'Sharon Park',
-                        description: 'Community park featuring basketball courts and walking trails.',
+                        description: 'Community park featuring pickleball courts and walking trails.',
                         location: {
                             coordinates: [-122.4200, 37.7850]
                         },
                         address: 'Sharon Park',
-                        sportType: 'basketball',
-                        amenities: ['lighting', 'parking', 'water_fountain', 'seating'],
+                        sportType: 'pickleball',
+                        amenities: ['lighting', 'parking', 'water_fountain', 'seating', 'nets'],
                         operatingHours: {
                             open: '07:00',
                             close: '21:00'
@@ -857,13 +857,13 @@
                     {
                         id: 'court6',
                         name: 'Clyde Recreation Center',
-                        description: 'Full-service recreation center with multiple basketball courts and facilities.',
+                        description: 'Full-service recreation center with multiple pickleball courts and facilities.',
                         location: {
                             coordinates: [-122.4150, 37.7700]
                         },
                         address: 'Clyde Recreation Center',
-                        sportType: 'basketball',
-                        amenities: ['lighting', 'parking', 'restrooms', 'water_fountain', 'seating', 'indoor_courts'],
+                        sportType: 'pickleball',
+                        amenities: ['lighting', 'parking', 'restrooms', 'water_fountain', 'seating', 'indoor_courts', 'nets', 'equipment_rental'],
                         operatingHours: {
                             open: '06:00',
                             close: '22:00'
@@ -1870,7 +1870,7 @@
                 const dataSets = {
                     'court1': {
                         // Hillcrest Park - Very Busy
-                        hourlyPatterns: [
+                    hourlyPatterns: [
                             { hour: 6, averageCrowdLevel: 3.5, checkInCount: 8 },
                             { hour: 7, averageCrowdLevel: 4.2, checkInCount: 15 },
                             { hour: 8, averageCrowdLevel: 4.8, checkInCount: 22 },
@@ -1952,8 +1952,8 @@
                             { hour: 18, averageCrowdLevel: 2.8, checkInCount: 11 },
                             { hour: 19, averageCrowdLevel: 2.5, checkInCount: 8 },
                             { hour: 20, averageCrowdLevel: 2.0, checkInCount: 5 },
-                            { hour: 21, averageCrowdLevel: 1.5, checkInCount: 3 }
-                        ],
+                        { hour: 21, averageCrowdLevel: 1.5, checkInCount: 3 }
+                    ],
                         crowdDistribution: [
                             { _id: 1, count: 18 },
                             { _id: 2, count: 28 },
@@ -2019,19 +2019,19 @@
                             { hour: 19, averageCrowdLevel: 2.6, checkInCount: 9 },
                             { hour: 20, averageCrowdLevel: 2.2, checkInCount: 6 },
                             { hour: 21, averageCrowdLevel: 1.8, checkInCount: 4 }
-                        ],
-                        crowdDistribution: [
-                            { _id: 1, count: 15 },
-                            { _id: 2, count: 25 },
+                    ],
+                    crowdDistribution: [
+                        { _id: 1, count: 15 },
+                        { _id: 2, count: 25 },
                             { _id: 3, count: 38 },
                             { _id: 4, count: 28 },
                             { _id: 5, count: 9 }
-                        ],
-                        summary: {
+                    ],
+                    summary: {
                             totalCheckIns: 115,
                             averageCrowdLevel: 3.0,
-                            peakHour: 14
-                        }
+                        peakHour: 14
+                    }
                     },
                     'court6': {
                         // Clyde Recreation Center - Busy
