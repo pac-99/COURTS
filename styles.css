@@ -1148,8 +1148,4 @@ body {
     .crowd-level-selector {
         grid-template-columns: repeat(2, 1fr);
     }
-
-    .nav-item span {
-        display: none;
-    }
 }
