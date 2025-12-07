@@ -1317,10 +1317,15 @@
             createCourtCard(court, isFavorite = false) {
                 const card = document.createElement('div');
                 card.className = 'court-card';
+                
+                // Ensure we use the court from this.courts array to maintain data consistency
+                const courtId = court.id;
                 card.addEventListener('click', (e) => {
                     // Don't trigger if clicking the favorite button
                     if (!e.target.closest('.court-card-favorite-btn')) {
-                        this.showCourtDetail(court);
+                        // Always find the court from this.courts to ensure we use the same data
+                        const courtToShow = this.courts.find(c => c.id === courtId) || court;
+                        this.showCourtDetail(courtToShow);
                     }
                 });
 
@@ -1393,9 +1398,20 @@
                 // Find the court from the stored courts array to ensure we use the latest data
                 // This ensures the gauge shows the same data as the court card
                 const storedCourt = this.courts.find(c => c.id === court.id) || court;
+                
+                // Ensure we have valid court data
+                if (!storedCourt || !storedCourt.currentStatus) {
+                    console.error('Invalid court data:', storedCourt);
+                    return;
+                }
+                
                 this.currentCourt = storedCourt;
                 this.showPage('courtDetail');
-                this.updateCourtDetailView();
+                
+                // Use requestAnimationFrame to ensure DOM is ready
+                requestAnimationFrame(() => {
+                    this.updateCourtDetailView();
+                });
             }
 
             updateCourtDetailView() {
@@ -1453,25 +1469,26 @@
                 }
                 
                 // Use shared function to calculate gauge percentage - ensures consistency with court cards
+                // Get crowdLevel from the same source as the court card
                 const crowdLevel = this.currentCourt.currentStatus.crowdLevel;
                 const gaugePercentage = this.calculateGaugePercentage(crowdLevel);
                 
                 const gaugeFill = document.getElementById('courtDetailGaugeFill');
                 const gaugeNeedle = document.getElementById('courtDetailGaugeNeedle');
                 
-                if (gaugeFill) {
-                    gaugeFill.style.width = `${gaugePercentage}%`;
-                    // Use EXACT same gradient as court cards
-                    gaugeFill.style.background = 'linear-gradient(to right, #ef4444 0%, #f97316 25%, #f59e0b 50%, #84cc16 75%, #10b981 100%)';
-                } else {
-                    console.warn('Gauge fill element not found');
+                if (!gaugeFill || !gaugeNeedle) {
+                    console.warn('Gauge elements not found, retrying...');
+                    // Retry after a short delay in case DOM isn't ready
+                    setTimeout(() => this.updateCourtDetailGauge(), 100);
+                    return;
                 }
                 
-                if (gaugeNeedle) {
-                    gaugeNeedle.style.left = `${gaugePercentage}%`;
-                } else {
-                    console.warn('Gauge needle element not found');
-                }
+                // Update gauge fill - use EXACT same calculation and gradient as court cards
+                gaugeFill.style.width = `${gaugePercentage}%`;
+                gaugeFill.style.background = 'linear-gradient(to right, #ef4444 0%, #f97316 25%, #f59e0b 50%, #84cc16 75%, #10b981 100%)`;
+                
+                // Update gauge needle
+                gaugeNeedle.style.left = `${gaugePercentage}%`;
             }
             
             loadCourtComments() {
