@@ -767,7 +767,9 @@
                         images: [
                             {
                                 url: './images/julius-caesar-pickleball.png',
-                                caption: 'Julius Caesar playing pickleball at Hillcrest Park'
+                                caption: 'Julius Caesar playing pickleball at Hillcrest Park',
+                                username: '@JuliusCaesar',
+                                createdAt: new Date(Date.now() - 10 * 60 * 60 * 1000) // 10 hours ago
                             }
                         ]
                     },
@@ -1501,11 +1503,19 @@
                 const mediaContainer = document.getElementById('courtMedia');
                 if (this.currentCourt.images && this.currentCourt.images.length > 0) {
                     mediaContainer.innerHTML = this.currentCourt.images
-                        .map(image => `
-                            <div class="media-item">
-                                <img src="${image.url}" alt="${image.caption || 'Court image'}" loading="lazy">
-                            </div>
-                        `)
+                        .map(image => {
+                            const timeAgo = image.createdAt ? this.formatTimeAgo(new Date(image.createdAt)) : 'just now';
+                            const username = image.username || '@user';
+                            return `
+                                <div class="media-item">
+                                    <div class="media-item-overlay">
+                                        <div class="media-item-username">${username}</div>
+                                        <div class="media-item-time">${timeAgo}</div>
+                                    </div>
+                                    <img src="${image.url}" alt="${image.caption || 'Court image'}" loading="lazy">
+                                </div>
+                            `;
+                        })
                         .join('');
                 } else {
                     mediaContainer.innerHTML = '<p>No photos available</p>';
