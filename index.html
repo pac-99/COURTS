@@ -1022,6 +1022,15 @@
                     this.hideCheckInModal();
                 });
 
+                // Close modal when clicking outside the modal content
+                const checkInModal = document.getElementById('checkInModal');
+                checkInModal.addEventListener('click', (e) => {
+                    // Only close if clicking directly on the modal backdrop (not on modal-content)
+                    if (e.target === checkInModal) {
+                        this.hideCheckInModal();
+                    }
+                });
+
                 document.getElementById('checkInForm').addEventListener('submit', (e) => {
                     e.preventDefault();
                     this.submitCheckIn();
@@ -1507,13 +1516,13 @@
                             const timeAgo = image.createdAt ? this.formatTimeAgo(new Date(image.createdAt)) : 'just now';
                             const username = image.username || '@user';
                             return `
-                                <div class="media-item">
+                            <div class="media-item">
                                     <div class="media-item-overlay">
                                         <div class="media-item-username">${username}</div>
                                         <div class="media-item-time">${timeAgo}</div>
                                     </div>
-                                    <img src="${image.url}" alt="${image.caption || 'Court image'}" loading="lazy">
-                                </div>
+                                <img src="${image.url}" alt="${image.caption || 'Court image'}" loading="lazy">
+                            </div>
                             `;
                         })
                         .join('');
