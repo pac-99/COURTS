@@ -239,12 +239,37 @@
                         </button>
                     </div>
                     <div class="court-media">
-                        <h4>Photos & Videos</h4>
+                        <h4>Live Updates</h4>
                         <div id="courtMedia" class="media-gallery"></div>
                     </div>
                     <div class="court-checkins">
                         <h4>Recent Check-ins</h4>
                         <div id="recentCheckins" class="checkin-list"></div>
+                    </div>
+                    <div class="court-gauge-section">
+                        <h4>Current Crowd Level</h4>
+                        <div class="court-card-gauge-container">
+                            <div class="court-card-gauge">
+                                <div class="gauge-background"></div>
+                                <div id="courtDetailGaugeFill" class="gauge-fill"></div>
+                                <div id="courtDetailGaugeNeedle" class="gauge-needle"></div>
+                            </div>
+                            <div class="gauge-labels">
+                                <span class="gauge-label-left">Busy</span>
+                                <span class="gauge-label-right">Free</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="court-comments">
+                        <h4>Comments</h4>
+                        <div id="courtComments" class="comments-list"></div>
+                        <div class="add-comment-section">
+                            <textarea id="newCommentInput" placeholder="Add a comment about this court..." rows="3"></textarea>
+                            <button id="submitCommentBtn" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i>
+                                Post Comment
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -740,7 +765,12 @@
                             count: 52
                         },
                         verified: true,
-                        images: []
+                        images: [
+                            {
+                                url: './images/julius-caesar-pickleball.png',
+                                caption: 'Julius Caesar playing pickleball at Hillcrest Park'
+                            }
+                        ]
                     },
                     {
                         id: 'court2',
@@ -979,6 +1009,11 @@
 
                 document.getElementById('favoriteBtn').addEventListener('click', () => {
                     this.toggleFavorite();
+                });
+
+                // Comment submission
+                document.getElementById('submitCommentBtn').addEventListener('click', () => {
+                    this.submitComment();
                 });
 
                 // Check-in modal
@@ -1366,8 +1401,122 @@
                 // Update media gallery
                 this.updateMediaGallery();
                 
+                // Update gauge
+                this.updateCourtDetailGauge();
+                
                 // Load recent check-ins
                 this.loadRecentCheckIns();
+                
+                // Load comments
+                this.loadCourtComments();
+            }
+            
+            updateCourtDetailGauge() {
+                if (!this.currentCourt) return;
+                
+                // Calculate gauge percentage (1 = empty/green, 5 = very busy/red)
+                // Invert so 1 = 100% (green) and 5 = 0% (red)
+                const gaugePercentage = ((6 - this.currentCourt.currentStatus.crowdLevel) / 5) * 100;
+                
+                const gaugeFill = document.getElementById('courtDetailGaugeFill');
+                const gaugeNeedle = document.getElementById('courtDetailGaugeNeedle');
+                
+                if (gaugeFill) {
+                    gaugeFill.style.width = `${gaugePercentage}%`;
+                    gaugeFill.style.background = 'linear-gradient(to right, #ef4444 0%, #f97316 25%, #f59e0b 50%, #84cc16 75%, #10b981 100%)';
+                }
+                
+                if (gaugeNeedle) {
+                    gaugeNeedle.style.left = `${gaugePercentage}%`;
+                }
+            }
+            
+            loadCourtComments() {
+                // Demo comments for each court
+                const commentsByCourt = {
+                    'court1': [
+                        { user: 'Marcus', text: 'Great courts! Very busy on weekends but worth it.', time: '2 hours ago' },
+                        { user: 'Brutus', text: 'Well maintained and good lighting for evening games.', time: '5 hours ago' }
+                    ],
+                    'court2': [
+                        { user: 'Cassius', text: 'Good location, parking can be tight.', time: '1 hour ago' },
+                        { user: 'Antony', text: 'Love playing here!', time: '3 hours ago' }
+                    ],
+                    'court3': [
+                        { user: 'Octavia', text: 'Family-friendly atmosphere.', time: '4 hours ago' }
+                    ],
+                    'court4': [
+                        { user: 'Cleopatra', text: 'Quiet and peaceful, perfect for practice.', time: '6 hours ago' }
+                    ],
+                    'court5': [
+                        { user: 'Pompey', text: 'Nice courts with good facilities.', time: '2 hours ago' }
+                    ],
+                    'court6': [
+                        { user: 'Cicero', text: 'Excellent indoor facilities!', time: '1 hour ago' },
+                        { user: 'Caesar', text: 'Best recreation center in town!', time: '3 hours ago' }
+                    ]
+                };
+                
+                const comments = commentsByCourt[this.currentCourt.id] || [];
+                this.updateCourtComments(comments);
+            }
+            
+            updateCourtComments(comments) {
+                const container = document.getElementById('courtComments');
+                if (comments.length === 0) {
+                    container.innerHTML = '<p class="no-comments">No comments yet. Be the first to comment!</p>';
+                    return;
+                }
+                
+                container.innerHTML = comments.map(comment => `
+                    <div class="comment-item">
+                        <div class="comment-header">
+                            <span class="comment-author">${comment.user}</span>
+                            <span class="comment-time">${comment.time}</span>
+                        </div>
+                        <div class="comment-text">${comment.text}</div>
+                    </div>
+                `).join('');
+            }
+            
+            submitComment() {
+                const commentInput = document.getElementById('newCommentInput');
+                const commentText = commentInput.value.trim();
+                
+                if (!commentText) {
+                    this.showToast('Please enter a comment', 'warning');
+                    return;
+                }
+                
+                if (!this.currentUser) {
+                    this.showToast('Please sign in to post a comment', 'warning');
+                    return;
+                }
+                
+                // Add new comment to the list
+                const newComment = {
+                    user: this.currentUser.name,
+                    text: commentText,
+                    time: 'just now'
+                };
+                
+                // Get current comments and add new one
+                const container = document.getElementById('courtComments');
+                const existingComments = Array.from(container.querySelectorAll('.comment-item')).map(item => {
+                    return {
+                        user: item.querySelector('.comment-author').textContent,
+                        text: item.querySelector('.comment-text').textContent,
+                        time: item.querySelector('.comment-time').textContent
+                    };
+                });
+                
+                existingComments.unshift(newComment);
+                this.updateCourtComments(existingComments);
+                
+                // Clear input
+                commentInput.value = '';
+                
+                this.showToast('Comment posted!', 'success');
             }
 
             updateMediaGallery() {
