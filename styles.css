@@ -667,32 +667,33 @@ body {
     color: var(--text-muted);
 }
 
-/* Court Gauge Section */
-.court-gauge-section {
-    margin-top: 2rem;
-    padding: 1.5rem;
-    background-color: var(--surface-color);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
+.checkin-comment {
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
 }
 
-.court-gauge-section h4 {
-    margin-bottom: 1rem;
-    color: var(--text-primary);
+/* Court Detail Gauge */
+.court-detail-gauge-container {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background-color: var(--background-color);
+    border-radius: var(--radius-md);
+}
+
+.court-detail-gauge {
+    position: relative;
+    height: 12px;
+    background-color: #e2e8f0;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
 }
 
 /* Comments Section */
 .court-comments {
     margin-top: 2rem;
-    padding: 1.5rem;
-    background-color: var(--surface-color);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
-}
-
-.court-comments h4 {
-    margin-bottom: 1rem;
-    color: var(--text-primary);
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
 }
 
 .comments-list {
@@ -705,10 +706,10 @@ body {
 }
 
 .comment-item {
-    padding: 1rem;
-    background-color: var(--background-color);
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    border-left: 3px solid var(--primary-color);
+    padding: 1rem;
 }
 
 .comment-header {
@@ -718,28 +719,34 @@ body {
     margin-bottom: 0.5rem;
 }
 
-.comment-author {
+.comment-user {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.comment-avatar {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.comment-user-name {
     font-weight: 600;
     color: var(--text-primary);
-    font-size: 0.875rem;
+    font-size: 0.9375rem;
 }
 
 .comment-time {
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     color: var(--text-muted);
 }
 
 .comment-text {
     color: var(--text-secondary);
-    font-size: 0.875rem;
-    line-height: 1.5;
-}
-
-.no-comments {
-    text-align: center;
-    color: var(--text-muted);
-    padding: 2rem;
-    font-style: italic;
+    line-height: 1.6;
+    margin-top: 0.5rem;
 }
 
 .add-comment-section {
@@ -751,10 +758,10 @@ body {
 .add-comment-section textarea {
     width: 100%;
     padding: 0.75rem;
-    border: 1px solid var(--border-color);
+    border: 2px solid var(--border-color);
     border-radius: var(--radius-md);
-    font-size: 0.875rem;
     font-family: inherit;
+    font-size: 0.9375rem;
     resize: vertical;
     margin-bottom: 0.75rem;
     transition: border-color 0.2s ease;
@@ -763,16 +770,11 @@ body {
 .add-comment-section textarea:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-.add-comment-section button {
-    width: 100%;
-}
-
-.checkin-comment {
-    color: var(--text-secondary);
-    margin-top: 0.5rem;
+.text-muted {
+    color: var(--text-muted);
+    font-style: italic;
 }
 
 /* Modal */
