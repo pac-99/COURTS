@@ -1234,6 +1234,23 @@
                 }
             }
             
+            /**
+             * Calculate gauge percentage from crowd level
+             * This function ensures consistency between court cards and detail page
+             * @param {number} crowdLevel - The crowd level (1-5, where 1=empty, 5=very busy)
+             * @returns {number} - The gauge percentage (0-100, where 100=empty/green, 0=very busy/red)
+             */
+            calculateGaugePercentage(crowdLevel) {
+                // Validate crowdLevel is between 1 and 5
+                if (!crowdLevel || crowdLevel < 1 || crowdLevel > 5) {
+                    console.warn('Invalid crowdLevel:', crowdLevel, 'Defaulting to 3 (Moderate)');
+                    crowdLevel = 3;
+                }
+                // Calculate gauge percentage (1 = empty/green, 5 = very busy/red)
+                // Invert so 1 = 100% (green) and 5 = 0% (red)
+                return ((6 - crowdLevel) / 5) * 100;
+            }
+
             getMarkerColor(crowdLevel) {
                 const colors = {
                     1: '#10b981', // green
@@ -1317,9 +1334,9 @@
                 const heartIcon = isFavorited ? 'fas fa-heart' : 'far fa-heart';
                 const heartColor = isFavorited ? 'favorited' : '';
 
-                // Calculate gauge percentage (1 = empty/green, 5 = very busy/red)
-                // Invert so 1 = 100% (green) and 5 = 0% (red)
-                const gaugePercentage = ((6 - court.currentStatus.crowdLevel) / 5) * 100;
+                // Use shared function to calculate gauge percentage - ensures consistency with detail page
+                const crowdLevel = court.currentStatus?.crowdLevel || 3;
+                const gaugePercentage = this.calculateGaugePercentage(crowdLevel);
                 
                 card.innerHTML = `
                     <div class="court-card-header">
@@ -1430,12 +1447,14 @@
             }
             
             updateCourtDetailGauge() {
-                if (!this.currentCourt || !this.currentCourt.currentStatus) return;
+                if (!this.currentCourt || !this.currentCourt.currentStatus) {
+                    console.warn('Cannot update gauge: court or currentStatus missing');
+                    return;
+                }
                 
-                // Calculate gauge percentage (1 = empty/green, 5 = very busy/red)
-                // Invert so 1 = 100% (green) and 5 = 0% (red)
-                // Use EXACT same calculation as court cards to ensure consistency
-                const gaugePercentage = ((6 - this.currentCourt.currentStatus.crowdLevel) / 5) * 100;
+                // Use shared function to calculate gauge percentage - ensures consistency with court cards
+                const crowdLevel = this.currentCourt.currentStatus.crowdLevel;
+                const gaugePercentage = this.calculateGaugePercentage(crowdLevel);
                 
                 const gaugeFill = document.getElementById('courtDetailGaugeFill');
                 const gaugeNeedle = document.getElementById('courtDetailGaugeNeedle');
@@ -2517,11 +2536,13 @@
             updateCourtGauge(court) {
                 // This will be called when court status updates
                 // Find the court card and update its gauge
+                // Use shared function to ensure consistency with detail page
                 const courtCards = document.querySelectorAll('.court-card');
                 courtCards.forEach(card => {
                     const favoriteBtn = card.querySelector('.court-card-favorite-btn');
                     if (favoriteBtn && favoriteBtn.dataset.courtId === court.id) {
-                        const gaugePercentage = ((6 - court.currentStatus.crowdLevel) / 5) * 100;
+                        const crowdLevel = court.currentStatus?.crowdLevel || 3;
+                        const gaugePercentage = this.calculateGaugePercentage(crowdLevel);
                         const gaugeFill = card.querySelector('.gauge-fill');
                         const gaugeNeedle = card.querySelector('.gauge-needle');
                         if (gaugeFill) {
@@ -2532,6 +2553,12 @@
                         }
                     }
                 });
+                
+                // Also update detail page gauge if this court is currently displayed
+                if (this.currentCourt && this.currentCourt.id === court.id) {
+                    this.currentCourt = court; // Update the stored court object
+                    this.updateCourtDetailGauge();
+                }
             }
         }
 
