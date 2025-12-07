@@ -122,6 +122,12 @@ body {
     font-size: 1.25rem;
     font-weight: 700;
     color: var(--primary-color);
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.nav-brand:hover {
+    opacity: 0.8;
 }
 
 .nav-brand i {

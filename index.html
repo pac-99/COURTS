@@ -971,6 +971,11 @@
                     });
                 });
 
+                // Logo click - navigate to Find Courts page
+                document.querySelector('.nav-brand').addEventListener('click', () => {
+                    this.showPage('map');
+                });
+
                 // Authentication
                 document.getElementById('loginBtn').addEventListener('click', () => {
                     this.handleDemoLogin();
