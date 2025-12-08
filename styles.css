@@ -134,6 +134,13 @@ body {
     font-size: 1.5rem;
 }
 
+.nav-brand .logo-image {
+    height: 2rem;
+    width: auto;
+    display: block;
+    object-fit: contain;
+}
+
 .nav-menu {
     display: flex;
     gap: 0.5rem;
