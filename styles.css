@@ -112,9 +112,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    min-height: 8rem;
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
+    height: 4rem;
 }
 
 .nav-brand {
@@ -137,12 +135,10 @@ body {
 }
 
 .nav-brand .logo-image {
-    height: 7rem;
+    height: 3.5rem;
     width: auto;
     display: block;
     object-fit: contain;
-    max-width: none;
-    margin-right: 0.5rem;
 }
 
 .nav-menu {

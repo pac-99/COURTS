@@ -1,27 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" width="400" height="120">
-  <!-- Large Blue C letter - bold rounded shape wrapping around pickleball -->
-  <path d="M 20 60 
-           C 20 30, 45 15, 70 15 
-           L 70 28 
-           C 50 28, 30 38, 30 60 
-           C 30 82, 50 92, 70 92 
-           L 70 105 
-           C 45 105, 20 90, 20 60 Z" 
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 100" width="300" height="100">
+  <!-- Blue C letter - bold rounded shape wrapping around pickleball -->
+  <path d="M 15 50 
+           C 15 25, 35 15, 50 15 
+           L 50 25 
+           C 38 25, 25 32, 25 50 
+           C 25 68, 38 75, 50 75 
+           L 50 85 
+           C 35 85, 15 75, 15 50 Z" 
         fill="#3271F3"/>
   
   <!-- Lime Green Pickleball inside C -->
-  <circle cx="50" cy="60" r="18" fill="#97E930"/>
+  <circle cx="40" cy="50" r="14" fill="#97E930"/>
   <!-- Pickleball holes (white) -->
-  <circle cx="44" cy="55" r="2" fill="white"/>
-  <circle cx="50" cy="51" r="2" fill="white"/>
-  <circle cx="56" cy="55" r="2" fill="white"/>
-  <circle cx="44" cy="60" r="2" fill="white"/>
-  <circle cx="56" cy="60" r="2" fill="white"/>
-  <circle cx="44" cy="65" r="2" fill="white"/>
-  <circle cx="50" cy="69" r="2" fill="white"/>
-  <circle cx="56" cy="65" r="2" fill="white"/>
-  <circle cx="50" cy="60" r="1.5" fill="white"/>
+  <circle cx="36" cy="46" r="1.5" fill="white"/>
+  <circle cx="40" cy="43" r="1.5" fill="white"/>
+  <circle cx="44" cy="46" r="1.5" fill="white"/>
+  <circle cx="36" cy="50" r="1.5" fill="white"/>
+  <circle cx="44" cy="50" r="1.5" fill="white"/>
+  <circle cx="36" cy="54" r="1.5" fill="white"/>
+  <circle cx="40" cy="57" r="1.5" fill="white"/>
+  <circle cx="44" cy="54" r="1.5" fill="white"/>
+  <circle cx="40" cy="50" r="1" fill="white"/>
   
   <!-- OURTS text in blue - bold sans-serif -->
-  <text x="95" y="82" font-family="'Inter', 'Arial', 'Helvetica', sans-serif" font-size="70" font-weight="700" fill="#3271F3" letter-spacing="-1">OURTS</text>
+  <text x="70" y="68" font-family="'Inter', 'Arial', 'Helvetica', sans-serif" font-size="58" font-weight="700" fill="#3271F3" letter-spacing="-1">OURTS</text>
 </svg>
