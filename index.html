@@ -1870,8 +1870,6 @@
                 if (pageName === 'profile') {
                     this.loadProfileData();
                 } else if (pageName === 'analytics') {
-                    // Reset premium status to always show the premium overlay with $3.99 fee
-                    this.isPremium = false;
                     this.loadAnalyticsData();
                     this.updatePremiumLock();
                 }
@@ -2542,10 +2540,15 @@
                 const overlay = document.getElementById('premiumLockOverlay');
                 const content = document.getElementById('analyticsContent');
                 
-                // Always show premium overlay on analytics page, regardless of premium status
-                // This ensures users see the $3.99 monthly fee option every time
-                overlay.classList.remove('hidden');
-                content.classList.add('hidden');
+                if (this.isPremium) {
+                    // Hide overlay, show content
+                    overlay.classList.add('hidden');
+                    content.classList.remove('hidden');
+                } else {
+                    // Show overlay, hide content
+                    overlay.classList.remove('hidden');
+                    content.classList.add('hidden');
+                }
             }
 
             updateCourtGauge(court) {
