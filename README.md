@@ -1,3 +1,17 @@
+# COURTS 2.0
+
+Live: https://pac-99.github.io/COURTS/ (v1 is kept at `v1.html`).
+
+Static app, no build and no API keys needed. Two tracks you can switch in the header:
+- **Vision**: court status from camera + Roboflow player detection (Vision Lab included).
+- **Community**: court status from player check-ins.
+
+Details, limits and the Roboflow pipeline: [docs/V2.md](docs/V2.md).
+
+Run locally: `python3 -m http.server 8000` then open http://localhost:8000.
+
+---
+
 # CourtCheck - Find your game. Anytime.
 
 CourtCheck is a mobile-first web application that helps players instantly see how busy local sports courts are by combining crowdsourced reports and AI-enhanced camera data.

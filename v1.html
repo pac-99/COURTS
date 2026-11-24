@@ -1,0 +1,2589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COURTS - Find your game. Anytime.</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google API Configuration - Replace with your actual keys -->
+    <script>
+        // Single source of truth for API keys - replace these with your actual values
+        const GOOGLE_MAPS_API_KEY = "YOUR_API_KEY_HERE";  // TODO: Replace with your Google Maps API key
+        const GOOGLE_CLIENT_ID = "YOUR_CLIENT_ID.apps.googleusercontent.com";  // TODO: Replace with your OAuth 2.0 Client ID
+        const GOOGLE_MAP_ID = "DEMO_MAP_ID";  // Optional: Replace with your custom Map ID if you have one
+    </script>
+    
+    <!-- Google Sign-In -->
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <meta name="google-signin-client_id" id="google-signin-client-id" content="">
+    <script>
+        // Set the Google Sign-In client ID from the constant
+        document.addEventListener('DOMContentLoaded', () => {
+            const metaTag = document.getElementById('google-signin-client-id');
+            if (metaTag && typeof GOOGLE_CLIENT_ID !== 'undefined') {
+                metaTag.content = GOOGLE_CLIENT_ID;
+            }
+        });
+    </script>
+    
+    <!-- Google Maps API Loader (One-time load using modern importLibrary pattern) -->
+    <script>
+      (g => {
+        // Bootstrap loader for Google Maps JS API
+        var h, a, k, p = "The Google Maps JavaScript API", c = "google", l = "importLibrary", q = "__ib__",
+            m = document, b = window;
+        b = b[c] || (b[c] = {}); 
+        var d = b.maps || (b.maps = {}), r = new Set(), e = new URLSearchParams();
+        const u = () => h || (h = new Promise(async (f, n) => {
+          await (a = m.createElement("script"));
+          e.set("libraries", [...r] + "");
+          for (k in g) e.set(k.replace(/[A-Z]/g, t => "_" + t[0].toLowerCase()), g[k]);
+          e.set("callback", c + ".maps." + q);
+          a.src = `https://maps.${c}apis.com/maps/api/js?` + e;
+          d[q] = f;
+          a.onerror = () => h = n(Error(p + " could not load."));
+          a.nonce = m.querySelector("script[nonce]")?.nonce || "";
+          m.head.append(a);
+        }));
+        d[l] ? console.warn(p + " only loads once. Ignoring:", g) : d[l] = (f, ...n) => {
+          r.add(f);
+          return u().then(() => d[l](f, ...n));
+        };
+      })({
+        key: GOOGLE_MAPS_API_KEY,  // Uses the constant defined above
+        v: "weekly"
+      });
+    </script>
+    
+    <!-- Google Maps Extended Component Library (One-time load) -->
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/@googlemaps/extended-component-library/0.6.11/index.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-brand">
+                    <img src="images/logo.png" alt="Courts Logo" class="logo-image">
+                </div>
+                <div class="nav-menu">
+                    <button class="nav-item active" data-page="map">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Find Courts</span>
+                    </button>
+                    <button class="nav-item" data-page="profile">
+                        <i class="fas fa-user"></i>
+                        <span>My Profile</span>
+                    </button>
+                    <button class="nav-item" data-page="analytics">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Court Insights</span>
+                    </button>
+                </div>
+                <div class="nav-auth">
+                    <button id="loginBtn" class="btn btn-primary">
+                        <i class="fab fa-google"></i>
+                        Sign In
+                    </button>
+                    <!-- Google Sign-In Button (hidden, triggered programmatically) -->
+                    <div id="googleSignInButton" class="g-signin2" data-onsuccess="onSignIn" style="display: none;"></div>
+                    <div id="userMenu" class="user-menu hidden">
+                        <div class="user-info">
+                            <img id="userAvatar" src="" alt="User Avatar" class="user-avatar">
+                            <span id="userName"></span>
+                        </div>
+                        <button id="logoutBtn" class="btn btn-secondary" onclick="signOut();">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Map View -->
+            <div id="mapView" class="page active">
+                <div class="branding-header">
+                    <div class="branding-banner">
+                        <div class="branding-banner-content">
+                            <span class="branding-text">Find your game</span>
+                            <span class="branding-separator"> - </span>
+                            <span class="branding-text">Play Smarter</span>
+                            <span class="branding-separator"> - </span>
+                            <span class="branding-text">Find your game</span>
+                            <span class="branding-separator"> - </span>
+                            <span class="branding-text">Play Smarter</span>
+                            <span class="branding-separator"> - </span>
+                            <span class="branding-text">Find your game</span>
+                            <span class="branding-separator"> - </span>
+                            <span class="branding-text">Play Smarter</span>
+                            <span class="branding-separator"> - </span>
+                        </div>
+                        <div class="branding-banner-content" aria-hidden="true">
+                            <span class="branding-text">Find your game</span>
+                            <span class="branding-separator"> - </span>
+                            <span class="branding-text">Play Smarter</span>
+                            <span class="branding-separator"> - </span>
+                            <span class="branding-text">Find your game</span>
+                            <span class="branding-separator"> - </span>
+                            <span class="branding-text">Play Smarter</span>
+                            <span class="branding-separator"> - </span>
+                            <span class="branding-text">Find your game</span>
+                            <span class="branding-separator"> - </span>
+                            <span class="branding-text">Play Smarter</span>
+                            <span class="branding-separator"> - </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="add-update-button-container">
+                    <button id="addUpdateBtn" class="btn btn-primary btn-large">
+                        <i class="fas fa-plus-circle"></i>
+                        Add an Update About a Location
+                    </button>
+                </div>
+                <div class="map-container">
+                    <div id="map" class="map"></div>
+                    <div class="map-controls">
+                        <div class="search-bar">
+                            <input type="text" id="searchInput" placeholder="Search courts or locations...">
+                            <button id="searchBtn" class="btn btn-primary">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <div class="filters">
+                            <select id="sportFilter">
+                                <option value="">All Sports</option>
+                                <option value="basketball">Basketball</option>
+                                <option value="tennis">Tennis</option>
+                                <option value="pickleball">Pickleball</option>
+                                <option value="soccer">Soccer</option>
+                                <option value="volleyball">Volleyball</option>
+                                <option value="badminton">Badminton</option>
+                            </select>
+                            <select id="statusFilter">
+                                <option value="">All Status</option>
+                                <option value="1,2">Available</option>
+                                <option value="3">Moderate</option>
+                                <option value="4,5">Busy</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="court-list">
+                    <h3>Nearby Courts</h3>
+                    <div id="courtList" class="court-cards">
+                        <!-- Court cards will be populated here -->
+                    </div>
+                </div>
+                <div class="court-list">
+                    <h3>Favorite Courts</h3>
+                    <div id="favoriteCourtsList" class="court-cards">
+                        <!-- Favorite court cards will be populated here -->
+                    </div>
+                    <div id="noFavoritesMessage" class="no-favorites-message" style="display: none;">
+                        <p>No favorite courts yet. Click the heart icon on any court to add it to your favorites.</p>
+                    </div>
+                </div>
+                
+                <!-- Store Locator Component -->
+                <div id="storeLocatorContainer" class="store-locator-container" style="display: none;">
+                    <h3>Find Courts Nearby</h3>
+                    <gmpx-api-loader id="store-locator-api-loader" key="YOUR_API_KEY_HERE" solution-channel="GMP_QB_locatorplus_v11_c"></gmpx-api-loader>
+                    <gmpx-store-locator map-id="DEMO_MAP_ID"></gmpx-store-locator>
+                </div>
+            </div>
+
+            <!-- Court Detail View -->
+            <div id="courtDetailView" class="page">
+                <div class="court-detail-header">
+                    <button id="backToMap" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Map
+                    </button>
+                    <h1 id="courtDetailName"></h1>
+                </div>
+                <div class="court-detail-content">
+                    <div class="court-info">
+                        <div class="court-status">
+                            <div id="courtStatusIndicator" class="status-indicator"></div>
+                            <div class="status-info">
+                                <span id="courtStatusText"></span>
+                                <span id="courtLastUpdated"></span>
+                            </div>
+                        </div>
+                        <div class="court-detail-gauge-container">
+                            <div class="court-detail-gauge">
+                                <div class="gauge-background"></div>
+                                <div id="courtDetailGaugeFill" class="gauge-fill"></div>
+                                <div id="courtDetailGaugeNeedle" class="gauge-needle"></div>
+                            </div>
+                            <div class="gauge-labels">
+                                <span class="gauge-label-left">Busy</span>
+                                <span class="gauge-label-right">Free</span>
+                            </div>
+                        </div>
+                        <div class="court-details">
+                            <p id="courtDescription"></p>
+                            <div class="court-amenities">
+                                <h4>Amenities</h4>
+                                <div id="courtAmenities"></div>
+                            </div>
+                            <div class="court-hours">
+                                <h4>Operating Hours</h4>
+                                <p id="courtHours"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="court-actions">
+                        <button id="checkInBtn" class="btn btn-primary btn-large">
+                            <i class="fas fa-check-circle"></i>
+                            Check In
+                        </button>
+                        <button id="favoriteBtn" class="btn btn-secondary">
+                            <i class="fas fa-heart"></i>
+                            Add to Favorites
+                        </button>
+                    </div>
+                    <div class="court-media">
+                        <h4>Live Visual Updates</h4>
+                        <div id="courtMedia" class="media-gallery"></div>
+                    </div>
+                    <div class="court-checkins">
+                        <h4>Recent Check-ins</h4>
+                        <div id="recentCheckins" class="checkin-list"></div>
+                    </div>
+                    <div class="court-comments">
+                        <h4>Comments</h4>
+                        <div id="courtComments" class="comments-list">
+                            <!-- Comments will be populated here -->
+                        </div>
+                        <div class="add-comment-section">
+                            <textarea id="newComment" placeholder="Add a comment..." rows="3"></textarea>
+                            <button id="submitComment" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i>
+                                Post Comment
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Check-in Modal -->
+            <div id="checkInModal" class="modal hidden">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Add an Update About a Location</h3>
+                        <button id="closeCheckInModal" class="btn btn-secondary">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="checkInForm">
+                            <div class="form-group">
+                                <label for="locationName">Location Name</label>
+                                <input type="text" id="locationName" placeholder="Enter location name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="locationAddress">Address</label>
+                                <gmpx-api-loader id="place-picker-api-loader" key="YOUR_API_KEY_HERE" solution-channel="GMP_QB_placepicker_v1_c"></gmpx-api-loader>
+                                <gmp-place-picker id="place-picker" placeholder="Enter address" required></gmp-place-picker>
+                                <input type="text" id="locationAddress" placeholder="Enter address" style="display: none;" required>
+                            </div>
+                            <!-- Place Picker Map and Info Window (hidden by default, shown when place is selected) -->
+                            <div id="place-picker-map-container" style="display: none; margin-top: 1rem;">
+                                <gmp-map id="place-picker-map" center="37.7749,-122.4194" zoom="12" style="height: 300px; width: 100%;"></gmp-map>
+                                <gmp-advanced-marker id="marker" position="37.7749,-122.4194"></gmp-advanced-marker>
+                                <div id="infowindow-content" style="display: none;">
+                                    <div id="place-name"></div>
+                                    <div id="place-address"></div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="crowdLevel">How busy is the court?</label>
+                                <div class="crowd-level-selector">
+                                    <button type="button" class="crowd-level-btn" data-level="1">
+                                        <i class="fas fa-circle"></i>
+                                        <span>Empty</span>
+                                    </button>
+                                    <button type="button" class="crowd-level-btn" data-level="2">
+                                        <i class="fas fa-circle"></i>
+                                        <span>Light</span>
+                                    </button>
+                                    <button type="button" class="crowd-level-btn" data-level="3">
+                                        <i class="fas fa-circle"></i>
+                                        <span>Moderate</span>
+                                    </button>
+                                    <button type="button" class="crowd-level-btn" data-level="4">
+                                        <i class="fas fa-circle"></i>
+                                        <span>Busy</span>
+                                    </button>
+                                    <button type="button" class="crowd-level-btn" data-level="5">
+                                        <i class="fas fa-circle"></i>
+                                        <span>Very Busy</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="checkInComment">Comment (optional)</label>
+                                <textarea id="checkInComment" placeholder="Share your experience..."></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="checkInMedia">Photos/Videos (optional)</label>
+                                <input type="file" id="checkInMedia" multiple accept="image/*,video/*">
+                            </div>
+                            <div class="form-group">
+                                <label for="checkInDuration">How long did you play? (minutes)</label>
+                                <input type="number" id="checkInDuration" min="0" placeholder="e.g., 60">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-large">
+                                <i class="fas fa-check"></i>
+                                Submit Update
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile View -->
+            <div id="profileView" class="page">
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        <img id="profileAvatar" src="" alt="Profile Avatar">
+                    </div>
+                    <div class="profile-info">
+                        <h2 id="profileName"></h2>
+                        <p id="profileEmail"></p>
+                        <div class="profile-stats">
+                            <div class="stat">
+                                <span class="stat-value" id="profileCheckIns">0</span>
+                                <span class="stat-label">Check-ins</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-value" id="profileReputation">0</span>
+                                <span class="stat-label">Reputation</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-value" id="profileBadges">0</span>
+                                <span class="stat-label">Badges</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-content">
+                    <div class="profile-section">
+                        <h3>My Check-ins</h3>
+                        <div id="profileCheckins" class="checkin-list"></div>
+                    </div>
+                    <div class="profile-section">
+                        <h3>Favorite Courts</h3>
+                        <div id="profileFavorites" class="court-cards"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics View -->
+            <div id="analyticsView" class="page">
+                <div class="analytics-header">
+                    <h2>Court Analytics</h2>
+                    <div class="court-selector-container">
+                        <div class="court-selector-wrapper">
+                            <div class="court-selector-input" id="courtSelectorInput">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="courtSearchInput" placeholder="Search courts..." autocomplete="off">
+                                <i class="fas fa-chevron-down" id="courtSelectorArrow"></i>
+                            </div>
+                            <div class="court-selector-dropdown" id="courtSelectorDropdown" style="display: none;">
+                                <div class="court-selector-list" id="courtSelectorList">
+                                    <!-- Court options will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+                        <select id="analyticsCourtSelect" style="display: none;">
+                        <option value="">Select a court...</option>
+                    </select>
+                    </div>
+                </div>
+                <!-- Premium Lock Overlay -->
+                <div id="premiumLockOverlay" class="premium-lock-overlay">
+                    <div class="premium-lock-content">
+                        <div class="premium-lock-icon">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <h3>Premium Feature</h3>
+                        <p>Unlock advanced analytics to get insights into court busy patterns and trends.</p>
+                        <button id="getPremiumBtn" class="btn btn-primary btn-large">
+                            Get Premium for $3.99
+                        </button>
+                    </div>
+                </div>
+                <div id="analyticsContent" class="analytics-content hidden">
+                    <div class="analytics-charts">
+                        <div class="chart-container">
+                            <h3>Busy Hours</h3>
+                            <canvas id="busyHoursChart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3>Crowd Level Distribution</h3>
+                            <canvas id="crowdDistributionChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="analytics-summary">
+                        <h3>Summary</h3>
+                        <div id="analyticsSummary" class="summary-cards"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" class="loading-spinner hidden">
+            <div class="spinner"></div>
+            <p>Loading...</p>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div id="toastContainer" class="toast-container"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Store Locator Configuration -->
+    <script>
+        // Store Locator Configuration
+        // TODO: Replace location data with real court locations from your database
+        const CONFIGURATION = {
+            locations: [
+                {
+                    title: "Hillcrest Park",
+                    address1: "Hillcrest Park",
+                    address2: "",
+                    coords: { lat: 37.7749, lng: -122.4194 },
+                    placeId: ""  // TODO: Replace with real Google Maps Place ID if available
+                },
+                {
+                    title: "Rotary Park",
+                    address1: "Rotary Park",
+                    address2: "",
+                    coords: { lat: 37.7800, lng: -122.4100 },
+                    placeId: ""
+                },
+                {
+                    title: "Quail Orchard Park",
+                    address1: "Quail Orchard Park",
+                    address2: "",
+                    coords: { lat: 37.7700, lng: -122.4300 },
+                    placeId: ""
+                },
+                {
+                    title: "Bonneville Park",
+                    address1: "Bonneville Park",
+                    address2: "",
+                    coords: { lat: 37.7750, lng: -122.4000 },
+                    placeId: ""
+                },
+                {
+                    title: "Sharon Park",
+                    address1: "Sharon Park",
+                    address2: "",
+                    coords: { lat: 37.7850, lng: -122.4200 },
+                    placeId: ""
+                },
+                {
+                    title: "Clyde Recreation Center",
+                    address1: "Clyde Recreation Center",
+                    address2: "",
+                    coords: { lat: 37.7700, lng: -122.4150 },
+                    placeId: ""
+                }
+            ],
+            mapOptions: {
+                center: { lat: 37.7749, lng: -122.4194 },  // Center on main city/area
+                fullscreenControl: true,
+                mapTypeControl: false,
+                streetViewControl: false,
+                zoom: 12,
+                zoomControl: true,
+                maxZoom: 17,
+                mapId: GOOGLE_MAP_ID  // Uses the constant defined in head
+            },
+            mapsApiKey: GOOGLE_MAPS_API_KEY,  // Uses the constant defined in head
+            capabilities: {
+                input: false,         // Disable search input (can enable if adding input box)
+                autocomplete: false,
+                directions: false,
+                distanceMatrix: false,
+                details: false,
+                actions: false
+            }
+        };
+        
+        // Initialize Store Locator when DOM is ready
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Set API key for store locator loader
+            const apiLoader = document.getElementById('store-locator-api-loader');
+            if (apiLoader && typeof GOOGLE_MAPS_API_KEY !== 'undefined' && GOOGLE_MAPS_API_KEY !== "YOUR_API_KEY_HERE") {
+                apiLoader.setAttribute('key', GOOGLE_MAPS_API_KEY);
+            }
+            
+            // Check if API key is configured
+            if (!GOOGLE_MAPS_API_KEY || GOOGLE_MAPS_API_KEY === "YOUR_API_KEY_HERE") {
+                console.warn('Store Locator: Google Maps API key not configured.');
+                return;
+            }
+            
+            // Wait until the custom element is defined
+            try {
+                await customElements.whenDefined('gmpx-store-locator');
+                const locator = document.querySelector('gmpx-store-locator');
+                if (locator) {
+                    locator.configureFromQuickBuilder(CONFIGURATION);
+                }
+            } catch (error) {
+                console.error('Error initializing store locator:', error);
+            }
+        });
+    </script>
+    
+    <!-- Place Picker Autofill API -->
+    <script>
+        /**
+         * @license
+         * Copyright 2024 Google LLC. All Rights Reserved.
+         * SPDX-License-Identifier: Apache-2.0
+         */
+        async function initPlacePicker() {
+            await customElements.whenDefined('gmp-map');
+            
+            const map = document.querySelector("#place-picker-map");
+            const marker = document.getElementById("marker");
+            const placePicker = document.getElementById("place-picker");
+            const mapContainer = document.getElementById("place-picker-map-container");
+            const locationAddressInput = document.getElementById("locationAddress");
+            const infowindowContent = document.getElementById("infowindow-content");
+            
+            if (!map || !marker || !placePicker) {
+                console.warn('Place picker elements not found');
+                return;
+            }
+            
+            // Wait for Google Maps API to be available
+            if (typeof google === 'undefined' || !google.maps) {
+                console.warn('Google Maps API not loaded yet');
+                return;
+            }
+            
+            const infowindow = new google.maps.InfoWindow();
+            map.innerMap.setOptions({mapTypeControl: false});
+            infowindow.setContent(infowindowContent);
+            
+            placePicker.addEventListener('gmpx-placechange', () => {
+                const place = placePicker.value;
+                
+                if (!place.location) {
+                    window.alert("No details available for input: '" + place.name + "'");
+                    infowindow.close();
+                    marker.position = null;
+                    mapContainer.style.display = 'none';
+                    return;
+                }
+                
+                // Show map container when place is selected
+                mapContainer.style.display = 'block';
+                
+                // Update the hidden address input with the formatted address
+                if (locationAddressInput) {
+                    locationAddressInput.value = place.formattedAddress || place.name;
+                }
+                
+                if (place.viewport) {
+                    map.innerMap.fitBounds(place.viewport);
+                } else {
+                    map.center = place.location;
+                    map.zoom = 17;
+                }
+                
+                marker.position = place.location;
+                
+                // Update info window content
+                const placeNameEl = document.getElementById("place-name");
+                const placeAddressEl = document.getElementById("place-address");
+                if (placeNameEl) placeNameEl.textContent = place.displayName;
+                if (placeAddressEl) placeAddressEl.textContent = place.formattedAddress;
+                
+                infowindow.open(map.innerMap, marker);
+            });
+        }
+        
+        // Set API key for place picker loader
+        document.addEventListener('DOMContentLoaded', () => {
+            const apiLoader = document.getElementById('place-picker-api-loader');
+            if (apiLoader && typeof GOOGLE_MAPS_API_KEY !== 'undefined' && GOOGLE_MAPS_API_KEY !== "YOUR_API_KEY_HERE") {
+                apiLoader.setAttribute('key', GOOGLE_MAPS_API_KEY);
+            }
+            initPlacePicker();
+        });
+    </script>
+    
+    <script>
+        // Google Sign-In Functions
+        // This callback runs when a user successfully signs in with Google
+        function onSignIn(googleUser) {
+            try {
+                // Get profile information for the signed-in user
+                const profile = googleUser.getBasicProfile();
+                
+                const user = {
+                    id: profile.getId(),
+                    name: profile.getName(),
+                    email: profile.getEmail(),
+                    imageUrl: profile.getImageUrl()
+                };
+                
+                console.log('Signed in user:', user);
+                
+                // TODO: In production, verify the ID token on the server
+                // const idToken = googleUser.getAuthResponse().id_token;
+                // Send idToken to your backend for verification before trusting the user data
+                
+                // Integrate with COURTS app's user system
+                if (window.app) {
+                    window.app.handleGoogleSignIn(user);
+                }
+            } catch (error) {
+                console.error('Error in onSignIn:', error);
+            }
+        }
+        
+        // Sign out function - disconnects the user from this app (not from Google account)
+        function signOut() {
+            try {
+                if (typeof gapi !== 'undefined' && gapi.auth2) {
+                    const auth2 = gapi.auth2.getAuthInstance();
+                    if (auth2) {
+                        auth2.signOut().then(() => {
+                            console.log('User signed out.');
+                            // Update UI to reflect the user is signed out
+                            if (window.app) {
+                                window.app.logout();
+                            }
+                        }).catch(error => {
+                            console.error('Error signing out:', error);
+                        });
+                    }
+                } else {
+                    // Fallback: just update the app UI
+                    if (window.app) {
+                        window.app.logout();
+                    }
+                }
+            } catch (error) {
+                console.error('Error in signOut:', error);
+                // Fallback: just update the app UI
+                if (window.app) {
+                    window.app.logout();
+                }
+            }
+        }
+        
+        // Initialize Google Sign-In when platform library loads
+        window.onGoogleSignInLoad = function() {
+            // Check if client ID is configured
+            if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID === "YOUR_CLIENT_ID.apps.googleusercontent.com") {
+                console.warn('Google Sign-In: Client ID not configured. Sign-in will not work.');
+                console.info('To enable Google Sign-In:');
+                console.info('1. Go to https://console.cloud.google.com/apis/credentials');
+                console.info('2. Create OAuth 2.0 Client ID credentials');
+                console.info('3. Replace "YOUR_CLIENT_ID.apps.googleusercontent.com" in index.html');
+                return;
+            }
+            
+            if (typeof gapi !== 'undefined') {
+                gapi.load('auth2', function() {
+                    try {
+                        gapi.auth2.init({
+                            client_id: GOOGLE_CLIENT_ID  // Uses the constant defined in head
+                        });
+                    } catch (error) {
+                        console.error('Error initializing Google Sign-In:', error);
+                    }
+                });
+            }
+        };
+    </script>
+    
+    <script>
+        // Standalone CourtCheck App with Demo Data
+        class StandaloneCourtCheckApp {
+            constructor() {
+                this.currentUser = null;
+                this.currentCourt = null;
+                this.map = null;
+                this.markers = [];
+                this.advancedMarkers = [];
+                this.courts = this.getDemoCourts();
+                this.selectedCrowdLevel = null;
+                this.favoriteCourts = this.loadFavorites();
+                this.isPremium = this.loadPremiumStatus();
+                this.googleMapsApiKey = "YOUR_API_KEY_HERE";
+                this.googleClientId = "YOUR_CLIENT_ID.apps.googleusercontent.com";
+                
+                this.init();
+            }
+
+            getDemoCourts() {
+                return [
+                    {
+                        id: 'court1',
+                        name: 'Hillcrest Park',
+                        description: 'Popular community park with multiple pickleball courts and recreational facilities.',
+                        location: {
+                            coordinates: [-122.4194, 37.7749]
+                        },
+                        address: 'Hillcrest Park',
+                        sportType: 'pickleball',
+                        amenities: ['lighting', 'parking', 'restrooms', 'nets', 'equipment_rental'],
+                        operatingHours: {
+                            open: '06:00',
+                            close: '22:00'
+                        },
+                        currentStatus: {
+                            crowdLevel: 5,
+                            lastUpdated: new Date(),
+                            source: 'hybrid'
+                        },
+                        statusColor: 'red',
+                        statusText: 'Very Busy',
+                        rating: {
+                            average: 4.3,
+                            count: 52
+                        },
+                        verified: true,
+                        images: [
+                            {
+                                url: './images/julius-caesar-pickleball.png',
+                                caption: 'Julius Caesar playing pickleball at Hillcrest Park',
+                                username: '@JuliusCaesar',
+                                createdAt: new Date(Date.now() - 10 * 60 * 60 * 1000) // 10 hours ago
+                            }
+                        ]
+                    },
+                    {
+                        id: 'court2',
+                        name: 'Rotary Park',
+                        description: 'Well-maintained park with pickleball courts and open recreational space.',
+                        location: {
+                            coordinates: [-122.4100, 37.7800]
+                        },
+                        address: 'Rotary Park',
+                        sportType: 'pickleball',
+                        amenities: ['lighting', 'parking', 'water_fountain', 'nets'],
+                        operatingHours: {
+                            open: '07:00',
+                            close: '21:00'
+                        },
+                        currentStatus: {
+                            crowdLevel: 4,
+                            lastUpdated: new Date(),
+                            source: 'user'
+                        },
+                        statusColor: 'red',
+                        statusText: 'Busy',
+                        rating: {
+                            average: 4.1,
+                            count: 38
+                        },
+                        verified: true,
+                        images: []
+                    },
+                    {
+                        id: 'court3',
+                        name: 'Quail Orchard Park',
+                        description: 'Family-friendly park with pickleball courts and playground facilities.',
+                        location: {
+                            coordinates: [-122.4300, 37.7700]
+                        },
+                        address: 'Quail Orchard Park',
+                        sportType: 'pickleball',
+                        amenities: ['lighting', 'parking', 'restrooms', 'seating', 'nets'],
+                        operatingHours: {
+                            open: '06:00',
+                            close: '20:00'
+                        },
+                        currentStatus: {
+                            crowdLevel: 3,
+                            lastUpdated: new Date(),
+                            source: 'user'
+                        },
+                        statusColor: 'yellow',
+                        statusText: 'Moderate',
+                        rating: {
+                            average: 4.4,
+                            count: 29
+                        },
+                        verified: true,
+                        images: []
+                    },
+                    {
+                        id: 'court4',
+                        name: 'Bonneville Park',
+                        description: 'Quiet neighborhood park with pickleball courts and picnic areas.',
+                        location: {
+                            coordinates: [-122.4000, 37.7750]
+                        },
+                        address: 'Bonneville Park',
+                        sportType: 'pickleball',
+                        amenities: ['parking', 'restrooms', 'nets'],
+                        operatingHours: {
+                            open: '06:00',
+                            close: '22:00'
+                        },
+                        currentStatus: {
+                            crowdLevel: 1,
+                            lastUpdated: new Date(),
+                            source: 'user'
+                        },
+                        statusColor: 'green',
+                        statusText: 'Empty',
+                        rating: {
+                            average: 4.0,
+                            count: 24
+                        },
+                        verified: true,
+                        images: []
+                    },
+                    {
+                        id: 'court5',
+                        name: 'Sharon Park',
+                        description: 'Community park featuring pickleball courts and walking trails.',
+                        location: {
+                            coordinates: [-122.4200, 37.7850]
+                        },
+                        address: 'Sharon Park',
+                        sportType: 'pickleball',
+                        amenities: ['lighting', 'parking', 'water_fountain', 'seating', 'nets'],
+                        operatingHours: {
+                            open: '07:00',
+                            close: '21:00'
+                        },
+                        currentStatus: {
+                            crowdLevel: 3,
+                            lastUpdated: new Date(),
+                            source: 'hybrid'
+                        },
+                        statusColor: 'yellow',
+                        statusText: 'Moderate',
+                        rating: {
+                            average: 4.2,
+                            count: 41
+                        },
+                        verified: true,
+                        images: []
+                    },
+                    {
+                        id: 'court6',
+                        name: 'Clyde Recreation Center',
+                        description: 'Full-service recreation center with multiple pickleball courts and facilities.',
+                        location: {
+                            coordinates: [-122.4150, 37.7700]
+                        },
+                        address: 'Clyde Recreation Center',
+                        sportType: 'pickleball',
+                        amenities: ['lighting', 'parking', 'restrooms', 'water_fountain', 'seating', 'indoor_courts', 'nets', 'equipment_rental'],
+                        operatingHours: {
+                            open: '06:00',
+                            close: '22:00'
+                        },
+                        currentStatus: {
+                            crowdLevel: 4,
+                            lastUpdated: new Date(),
+                            source: 'ai'
+                        },
+                        statusColor: 'red',
+                        statusText: 'Busy',
+                        rating: {
+                            average: 4.6,
+                            count: 67
+                        },
+                        verified: true,
+                        images: []
+                    }
+                ];
+            }
+
+            async init() {
+                this.setupEventListeners();
+                this.setupGoogleMaps();
+                this.updateCourtList();
+                this.updateFavoriteCourtsList();
+                this.showPage('map');
+                // Show check-in modal on first visit
+                setTimeout(() => {
+                    this.showCheckInModal();
+                }, 500);
+            }
+
+            loadFavorites() {
+                try {
+                    const saved = localStorage.getItem('favoriteCourts');
+                    return saved ? JSON.parse(saved) : [];
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            saveFavorites() {
+                try {
+                    localStorage.setItem('favoriteCourts', JSON.stringify(this.favoriteCourts));
+                } catch (e) {
+                    console.error('Failed to save favorites:', e);
+                }
+            }
+
+            loadPremiumStatus() {
+                try {
+                    const saved = localStorage.getItem('isPremium');
+                    return saved === 'true';
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            savePremiumStatus() {
+                try {
+                    localStorage.setItem('isPremium', 'true');
+                } catch (e) {
+                    console.error('Failed to save premium status:', e);
+                }
+            }
+
+            setupEventListeners() {
+                // Navigation
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        const page = e.currentTarget.dataset.page;
+                        this.showPage(page);
+                    });
+                });
+
+                // Logo click - navigate to Find Courts page
+                document.querySelector('.nav-brand').addEventListener('click', () => {
+                    this.showPage('map');
+                });
+
+                // Authentication
+                document.getElementById('loginBtn').addEventListener('click', () => {
+                    this.handleDemoLogin();
+                });
+
+                document.getElementById('logoutBtn').addEventListener('click', () => {
+                    this.logout();
+                });
+
+                // Map controls
+                document.getElementById('searchBtn').addEventListener('click', () => {
+                    this.searchCourts();
+                });
+
+                document.getElementById('searchInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.searchCourts();
+                    }
+                });
+
+                document.getElementById('sportFilter').addEventListener('change', () => {
+                    this.filterCourts();
+                });
+
+                document.getElementById('statusFilter').addEventListener('change', () => {
+                    this.filterCourts();
+                });
+
+                // Court detail
+                document.getElementById('backToMap').addEventListener('click', () => {
+                    this.showPage('map');
+                });
+
+                document.getElementById('checkInBtn').addEventListener('click', () => {
+                    this.showCheckInModal();
+                });
+
+                document.getElementById('favoriteBtn').addEventListener('click', () => {
+                    this.toggleFavorite();
+                });
+
+                // Comments
+                document.getElementById('submitComment').addEventListener('click', () => {
+                    this.submitComment();
+                });
+
+                // Check-in modal
+                document.getElementById('closeCheckInModal').addEventListener('click', () => {
+                    this.hideCheckInModal();
+                });
+
+                // Close modal when clicking outside the modal content
+                const checkInModal = document.getElementById('checkInModal');
+                checkInModal.addEventListener('click', (e) => {
+                    // Only close if clicking directly on the modal backdrop (not on modal-content)
+                    if (e.target === checkInModal) {
+                        this.hideCheckInModal();
+                    }
+                });
+
+                document.getElementById('checkInForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.submitCheckIn();
+                });
+
+                // Crowd level selection
+                document.querySelectorAll('.crowd-level-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        this.selectCrowdLevel(parseInt(e.currentTarget.dataset.level));
+                    });
+                });
+
+                // Add Update button - opens check-in modal
+                document.getElementById('addUpdateBtn').addEventListener('click', () => {
+                    this.showCheckInModal();
+                });
+
+                // Analytics
+                document.getElementById('analyticsCourtSelect').addEventListener('change', () => {
+                    this.loadAnalytics();
+                });
+
+                // Premium unlock
+                document.getElementById('getPremiumBtn').addEventListener('click', () => {
+                    this.unlockPremium();
+                });
+            }
+
+            async setupGoogleMaps() {
+                // Check if API key is set
+                if (!GOOGLE_MAPS_API_KEY || GOOGLE_MAPS_API_KEY === "YOUR_API_KEY_HERE") {
+                    console.warn('Google Maps API key not configured.');
+                    this.setupFallbackMap(true);
+                    return;
+                }
+
+                // Check if Google Maps is available
+                if (typeof google === 'undefined' || !google.maps) {
+                    console.warn('Google Maps API not loaded. Waiting for API to load...');
+                    // Wait a bit for the API to load
+                    let attempts = 0;
+                    const checkApi = setInterval(() => {
+                        attempts++;
+                        if (typeof google !== 'undefined' && google.maps) {
+                            clearInterval(checkApi);
+                            this.initializeMap();
+                        } else if (attempts > 20) {
+                            clearInterval(checkApi);
+                            console.error('Google Maps API failed to load after timeout.');
+                            this.setupFallbackMap(true);
+                        }
+                    }, 500);
+                    return;
+                }
+
+                this.initializeMap();
+            }
+
+            async initializeMap() {
+                try {
+                    // Use modern importLibrary pattern to dynamically load the Maps library
+                    const { Map } = await google.maps.importLibrary("maps");
+                    const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+                    
+                    // Store AdvancedMarkerElement for later use in creating custom markers
+                    this.AdvancedMarkerElement = AdvancedMarkerElement;
+
+                    // Center on main city/area (San Francisco in this example)
+                    const defaultLocation = { lat: 37.7749, lng: -122.4194 };
+                    
+                    // Create a new map instance in the #map container
+                    this.map = new Map(document.getElementById("map"), {
+                        center: defaultLocation,
+                        zoom: 12,
+                        mapId: typeof GOOGLE_MAP_ID !== 'undefined' && GOOGLE_MAP_ID !== "DEMO_MAP_ID" ? GOOGLE_MAP_ID : undefined,
+                        styles: [
+                            {
+                                featureType: 'poi',
+                                elementType: 'labels',
+                                stylers: [{ visibility: 'off' }]
+                            }
+                        ]
+                    });
+
+                    // Try to get user's location
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(
+                            (position) => {
+                                const userLocation = {
+                                    lat: position.coords.latitude,
+                                    lng: position.coords.longitude
+                                };
+                                this.map.setCenter(userLocation);
+                                this.updateMapMarkers();
+                            },
+                            () => {
+                                // If geolocation fails, just show markers at default location
+                                this.updateMapMarkers();
+                            }
+                        );
+                    } else {
+                        this.updateMapMarkers();
+                    }
+                } catch (error) {
+                    console.error('Error initializing Google Maps:', error);
+                    this.setupFallbackMap(true);
+                }
+            }
+
+            setupFallbackMap(showInstructions = false) {
+                const mapElement = document.getElementById('map');
+                const instructions = showInstructions ? `
+                    <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 8px; max-width: 500px; margin-left: auto; margin-right: auto;">
+                        <div style="font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem;">To enable the interactive map:</div>
+                        <ol style="text-align: left; font-size: 0.85rem; line-height: 1.6; padding-left: 1.5rem;">
+                            <li>Get a Google Maps API key from <a href="https://console.cloud.google.com/google/maps-apis" target="_blank" style="color: #fff; text-decoration: underline;">Google Cloud Console</a></li>
+                            <li>Enable "Maps JavaScript API" for your project</li>
+                            <li>Replace "YOUR_API_KEY_HERE" in index.html with your actual API key</li>
+                            <li>Refresh this page</li>
+                        </ol>
+                    </div>
+                ` : '';
+                mapElement.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center; padding: 2rem;">
+                        <div>
+                            <i class="fas fa-map-marked-alt" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                            <div style="font-size: 1.2rem; font-weight: 500;">Interactive Map View</div>
+                            <div style="font-size: 0.9rem; opacity: 0.8; margin-top: 0.5rem;">
+                                ${showInstructions ? 'Google Maps API key required' : 'Google Maps integration (requires API key)'}
+                            </div>
+                            ${instructions}
+                        </div>
+                    </div>
+                `;
+            }
+
+            async updateMapMarkers() {
+                if (!this.map) return;
+
+                // Clear existing markers
+                this.markers.forEach(marker => marker.setMap(null));
+                this.markers = [];
+                
+                // Clear existing advanced markers
+                this.advancedMarkers.forEach(marker => marker.map = null);
+                this.advancedMarkers = [];
+
+                // Use AdvancedMarkerElement if available (recommended, as classic Marker is deprecated)
+                // Otherwise fall back to classic markers for compatibility
+                if (this.AdvancedMarkerElement) {
+                    this.courts.forEach(court => {
+                        const position = { lat: court.location.coordinates[1], lng: court.location.coordinates[0] };
+                        
+                        // Create a custom DOM element for the marker icon
+                        // You can use an image URL or HTML element as the marker content
+                        const iconElement = document.createElement('div');
+                        iconElement.className = 'custom-marker';
+                        iconElement.innerHTML = `
+                            <div class="marker-icon" style="background-color: ${this.getMarkerColor(court.currentStatus.crowdLevel)}">
+                                <i class="fas fa-basketball-ball"></i>
+                            </div>
+                        `;
+                        
+                        // Create the Advanced Marker Element (modern API, replaces deprecated Marker)
+                        const marker = new this.AdvancedMarkerElement({
+                            map: this.map,
+                            position: position,
+                            title: court.name,
+                            content: iconElement  // Custom HTML element as marker content
+                        });
+
+                        // Add click listener to show court details
+                        marker.addListener('click', () => {
+                            this.showCourtDetail(court);
+                        });
+
+                        this.advancedMarkers.push(marker);
+                    });
+                } else {
+                    // Fallback to classic markers (deprecated but still works)
+                    // Note: google.maps.Marker is deprecated in favor of AdvancedMarkerElement
+                    this.courts.forEach(court => {
+                        const marker = new google.maps.Marker({
+                            position: { lat: court.location.coordinates[1], lng: court.location.coordinates[0] },
+                            map: this.map,
+                            title: court.name,
+                            icon: this.getMarkerIcon(court.currentStatus.crowdLevel)
+                        });
+
+                        marker.addListener('click', () => {
+                            this.showCourtDetail(court);
+                        });
+
+                        this.markers.push(marker);
+                    });
+                }
+            }
+            
+            /**
+             * Calculate gauge percentage from crowd level
+             * This function ensures consistency between court cards and detail page
+             * @param {number} crowdLevel - The crowd level (1-5, where 1=empty, 5=very busy)
+             * @returns {number} - The gauge percentage (0-100, where 100=empty/green, 0=very busy/red)
+             */
+            calculateGaugePercentage(crowdLevel) {
+                // Validate crowdLevel is between 1 and 5
+                if (!crowdLevel || crowdLevel < 1 || crowdLevel > 5) {
+                    console.warn('Invalid crowdLevel:', crowdLevel, 'Defaulting to 3 (Moderate)');
+                    crowdLevel = 3;
+                }
+                // Calculate gauge percentage (1 = empty/green, 5 = very busy/red)
+                // Invert so 1 = 100% (green) and 5 = 0% (red)
+                return ((6 - crowdLevel) / 5) * 100;
+            }
+
+            getMarkerColor(crowdLevel) {
+                const colors = {
+                    1: '#10b981', // green
+                    2: '#84cc16', // light green
+                    3: '#f59e0b', // yellow
+                    4: '#f97316', // orange
+                    5: '#ef4444'  // red
+                };
+                return colors[crowdLevel] || colors[1];
+            }
+
+            getMarkerIcon(crowdLevel) {
+                const colors = {
+                    1: '#10b981', // green
+                    2: '#84cc16', // light green
+                    3: '#f59e0b', // yellow
+                    4: '#f97316', // orange
+                    5: '#ef4444'  // red
+                };
+
+                return {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    fillColor: colors[crowdLevel] || colors[1],
+                    fillOpacity: 0.8,
+                    strokeColor: '#ffffff',
+                    strokeWeight: 2,
+                    scale: 8
+                };
+            }
+
+            updateCourtList() {
+                const courtList = document.getElementById('courtList');
+                courtList.innerHTML = '';
+
+                this.courts.forEach(court => {
+                    const courtCard = this.createCourtCard(court);
+                    courtList.appendChild(courtCard);
+                });
+            }
+
+            updateFavoriteCourtsList() {
+                const favoriteList = document.getElementById('favoriteCourtsList');
+                const noFavoritesMsg = document.getElementById('noFavoritesMessage');
+                favoriteList.innerHTML = '';
+
+                if (this.favoriteCourts.length === 0) {
+                    noFavoritesMsg.style.display = 'block';
+                    return;
+                }
+
+                noFavoritesMsg.style.display = 'none';
+
+                // Get favorite court objects from the courts array
+                const favoriteCourtObjects = this.courts.filter(court => 
+                    this.favoriteCourts.includes(court.id)
+                );
+
+                favoriteCourtObjects.forEach(court => {
+                    const courtCard = this.createCourtCard(court, true);
+                    favoriteList.appendChild(courtCard);
+                });
+            }
+
+            createCourtCard(court, isFavorite = false) {
+                const card = document.createElement('div');
+                card.className = 'court-card';
+                
+                // Ensure we use the court from this.courts array to maintain data consistency
+                const courtId = court.id;
+                card.addEventListener('click', (e) => {
+                    // Don't trigger if clicking the favorite button
+                    if (!e.target.closest('.court-card-favorite-btn')) {
+                        // Always find the court from this.courts to ensure we use the same data
+                        const courtToShow = this.courts.find(c => c.id === courtId) || court;
+                        this.showCourtDetail(courtToShow);
+                    }
+                });
+
+                const distance = this.calculateDistance(
+                    37.7749, -122.4194, // Default SF location
+                    court.location.coordinates[1],
+                    court.location.coordinates[0]
+                );
+
+                const isFavorited = this.favoriteCourts.includes(court.id);
+                const heartIcon = isFavorited ? 'fas fa-heart' : 'far fa-heart';
+                const heartColor = isFavorited ? 'favorited' : '';
+
+                // Use shared function to calculate gauge percentage - ensures consistency with detail page
+                const crowdLevel = court.currentStatus?.crowdLevel || 3;
+                const gaugePercentage = this.calculateGaugePercentage(crowdLevel);
+                
+                card.innerHTML = `
+                    <div class="court-card-header">
+                        <div>
+                            <div class="court-card-name">${court.name}</div>
+                            <div class="court-card-sport">${court.sportType}</div>
+                        </div>
+                        <div class="court-card-header-right">
+                            <div class="court-card-distance">${distance.toFixed(1)} km</div>
+                            <button class="court-card-favorite-btn ${heartColor}" data-court-id="${court.id}" title="${isFavorited ? 'Remove from favorites' : 'Add to favorites'}">
+                                <i class="${heartIcon}"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="court-card-gauge-container">
+                        <div class="court-card-gauge">
+                            <div class="gauge-background"></div>
+                            <div class="gauge-fill" style="width: ${gaugePercentage}%; background: linear-gradient(to right, #ef4444 0%, #f97316 25%, #f59e0b 50%, #84cc16 75%, #10b981 100%);"></div>
+                            <div class="gauge-needle" style="left: ${gaugePercentage}%;"></div>
+                        </div>
+                        <div class="gauge-labels">
+                            <span class="gauge-label-left">Busy</span>
+                            <span class="gauge-label-right">Free</span>
+                        </div>
+                    </div>
+                    <div class="court-card-status">
+                        <div class="status-indicator ${court.statusColor}"></div>
+                        <span>${court.statusText}</span>
+                    </div>
+                `;
+
+                // Add event listener for favorite button
+                const favoriteBtn = card.querySelector('.court-card-favorite-btn');
+                favoriteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.toggleCourtFavorite(court.id);
+                });
+
+                return card;
+            }
+
+            calculateDistance(lat1, lng1, lat2, lng2) {
+                const R = 6371; // Earth's radius in km
+                const dLat = (lat2 - lat1) * Math.PI / 180;
+                const dLng = (lng2 - lng1) * Math.PI / 180;
+                const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                        Math.sin(dLng/2) * Math.sin(dLng/2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                return R * c;
+            }
+
+            showCourtDetail(court) {
+                // Find the court from the stored courts array to ensure we use the latest data
+                // This ensures the gauge shows the same data as the court card
+                const storedCourt = this.courts.find(c => c.id === court.id) || court;
+                
+                // Ensure we have valid court data
+                if (!storedCourt || !storedCourt.currentStatus) {
+                    console.error('Invalid court data:', storedCourt);
+                    return;
+                }
+                
+                this.currentCourt = storedCourt;
+                this.showPage('courtDetail');
+                
+                // Use requestAnimationFrame to ensure DOM is ready
+                requestAnimationFrame(() => {
+                    this.updateCourtDetailView();
+                });
+            }
+
+            updateCourtDetailView() {
+                if (!this.currentCourt) return;
+
+                document.getElementById('courtDetailName').textContent = this.currentCourt.name;
+                document.getElementById('courtDescription').textContent = this.currentCourt.description;
+                
+                const statusIndicator = document.getElementById('courtStatusIndicator');
+                statusIndicator.className = `status-indicator ${this.currentCourt.statusColor}`;
+                
+                document.getElementById('courtStatusText').textContent = this.currentCourt.statusText;
+                document.getElementById('courtLastUpdated').textContent = 
+                    `Updated ${this.formatTimeAgo(new Date(this.currentCourt.currentStatus.lastUpdated))}`;
+
+                // Update gauge bar
+                this.updateCourtDetailGauge();
+
+                // Update favorite button
+                this.updateFavoriteButton();
+
+                // Update amenities
+                const amenitiesContainer = document.getElementById('courtAmenities');
+                if (this.currentCourt.amenities && this.currentCourt.amenities.length > 0) {
+                    amenitiesContainer.innerHTML = this.currentCourt.amenities
+                        .map(amenity => `<span class="amenity-tag">${amenity.replace('_', ' ')}</span>`)
+                        .join('');
+                } else {
+                    amenitiesContainer.innerHTML = '<span class="amenity-tag">No amenities listed</span>';
+                }
+
+                // Update operating hours
+                const hoursContainer = document.getElementById('courtHours');
+                if (this.currentCourt.operatingHours) {
+                    const hours = this.currentCourt.operatingHours;
+                    hoursContainer.textContent = `${hours.open} - ${hours.close}`;
+                } else {
+                    hoursContainer.textContent = 'Hours not specified';
+                }
+
+                // Update media gallery
+                this.updateMediaGallery();
+                
+                // Load recent check-ins
+                this.loadRecentCheckIns();
+                
+                // Load comments
+                this.loadCourtComments();
+            }
+            
+            updateCourtDetailGauge() {
+                if (!this.currentCourt || !this.currentCourt.currentStatus) {
+                    console.warn('Cannot update gauge: court or currentStatus missing');
+                    return;
+                }
+                
+                // Use shared function to calculate gauge percentage - ensures consistency with court cards
+                // Get crowdLevel from the same source as the court card
+                const crowdLevel = this.currentCourt.currentStatus.crowdLevel;
+                const gaugePercentage = this.calculateGaugePercentage(crowdLevel);
+                
+                const gaugeFill = document.getElementById('courtDetailGaugeFill');
+                const gaugeNeedle = document.getElementById('courtDetailGaugeNeedle');
+                
+                if (!gaugeFill || !gaugeNeedle) {
+                    console.warn('Gauge elements not found, retrying...');
+                    // Retry after a short delay in case DOM isn't ready
+                    setTimeout(() => this.updateCourtDetailGauge(), 100);
+                    return;
+                }
+                
+                // Update gauge fill - use EXACT same calculation and gradient as court cards
+                gaugeFill.style.width = `${gaugePercentage}%`;
+                gaugeFill.style.background = 'linear-gradient(to right, #ef4444 0%, #f97316 25%, #f59e0b 50%, #84cc16 75%, #10b981 100%)';
+                
+                // Update gauge needle
+                gaugeNeedle.style.left = `${gaugePercentage}%`;
+            }
+            
+            loadCourtComments() {
+                // Initialize comments array for each court if it doesn't exist
+                if (!this.currentCourt.comments) {
+                    this.currentCourt.comments = [];
+                }
+                
+                const commentsContainer = document.getElementById('courtComments');
+                if (this.currentCourt.comments.length === 0) {
+                    commentsContainer.innerHTML = '<p class="text-muted">No comments yet. Be the first to comment!</p>';
+                    return;
+                }
+                
+                commentsContainer.innerHTML = this.currentCourt.comments.map(comment => `
+                    <div class="comment-item">
+                        <div class="comment-header">
+                            <div class="comment-user">
+                                <img src="${comment.userAvatar || this.currentUser?.profilePicture || './images/julius-caesar-pickleball.png'}" 
+                                     alt="${comment.userName}" class="comment-avatar">
+                                <span class="comment-user-name">${comment.userName}</span>
+                            </div>
+                            <span class="comment-time">${this.formatTimeAgo(new Date(comment.createdAt))}</span>
+                        </div>
+                        <div class="comment-text">${comment.text}</div>
+                    </div>
+                `).join('');
+            }
+            
+            submitComment() {
+                const commentInput = document.getElementById('newComment');
+                const commentText = commentInput.value.trim();
+                
+                if (!commentText) {
+                    this.showToast('Please enter a comment', 'warning');
+                    return;
+                }
+                
+                if (!this.currentUser) {
+                    this.showToast('Please sign in to post a comment', 'warning');
+                    return;
+                }
+                
+                if (!this.currentCourt) return;
+                
+                // Initialize comments array if it doesn't exist
+                if (!this.currentCourt.comments) {
+                    this.currentCourt.comments = [];
+                }
+                
+                // Add new comment
+                const newComment = {
+                    text: commentText,
+                    userName: this.currentUser.name,
+                    userAvatar: this.currentUser.profilePicture,
+                    createdAt: new Date()
+                };
+                
+                this.currentCourt.comments.unshift(newComment); // Add to beginning
+                
+                // Clear input
+                commentInput.value = '';
+                
+                // Reload comments
+                this.loadCourtComments();
+                
+                this.showToast('Comment posted!', 'success');
+            }
+
+            updateMediaGallery() {
+                const mediaContainer = document.getElementById('courtMedia');
+                if (this.currentCourt.images && this.currentCourt.images.length > 0) {
+                    mediaContainer.innerHTML = this.currentCourt.images
+                        .map(image => {
+                            const timeAgo = image.createdAt ? this.formatTimeAgo(new Date(image.createdAt)) : 'just now';
+                            const username = image.username || '@user';
+                            return `
+                            <div class="media-item">
+                                    <div class="media-item-overlay">
+                                        <div class="media-item-username">${username}</div>
+                                        <div class="media-item-time">${timeAgo}</div>
+                                    </div>
+                                <img src="${image.url}" alt="${image.caption || 'Court image'}" loading="lazy">
+                            </div>
+                            `;
+                        })
+                        .join('');
+                } else {
+                    mediaContainer.innerHTML = '<p>No photos available</p>';
+                }
+            }
+
+            loadRecentCheckIns() {
+                // Demo check-ins
+                const demoCheckIns = [
+                    {
+                        user: { name: 'Alex Johnson', profilePicture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face' },
+                        crowdLevel: 3,
+                        comment: 'Great court, well maintained!',
+                        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000) // 2 hours ago
+                    },
+                    {
+                        user: { name: 'Sarah Chen', profilePicture: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=40&h=40&fit=crop&crop=face' },
+                        crowdLevel: 2,
+                        comment: 'Pretty busy today but worth the wait',
+                        createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000) // 4 hours ago
+                    }
+                ];
+
+                this.updateRecentCheckIns(demoCheckIns);
+            }
+
+            updateRecentCheckIns(checkIns) {
+                const container = document.getElementById('recentCheckins');
+                if (checkIns.length === 0) {
+                    container.innerHTML = '<p>No recent check-ins</p>';
+                    return;
+                }
+
+                container.innerHTML = checkIns.map(checkIn => `
+                    <div class="checkin-item">
+                        <div class="checkin-header">
+                            <div class="checkin-user">
+                                <img src="${checkIn.user.profilePicture}" 
+                                     alt="${checkIn.user.name}" class="checkin-avatar">
+                                <span>${checkIn.user.name}</span>
+                            </div>
+                            <div class="checkin-time">${this.formatTimeAgo(checkIn.createdAt)}</div>
+                        </div>
+                        <div class="checkin-comment">${checkIn.comment}</div>
+                    </div>
+                `).join('');
+            }
+
+            showCheckInModal() {
+                // If opened from a court detail, pre-fill location fields
+                if (this.currentCourt) {
+                    document.getElementById('locationName').value = this.currentCourt.name;
+                    document.getElementById('locationAddress').value = this.currentCourt.address;
+                } else {
+                    // Clear fields if not from a court detail
+                    document.getElementById('locationName').value = '';
+                    document.getElementById('locationAddress').value = '';
+                }
+                document.getElementById('checkInModal').classList.remove('hidden');
+            }
+
+            hideCheckInModal() {
+                document.getElementById('checkInModal').classList.add('hidden');
+                this.resetCheckInForm();
+            }
+
+            selectCrowdLevel(level) {
+                this.selectedCrowdLevel = level;
+                document.querySelectorAll('.crowd-level-btn').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                document.querySelector(`[data-level="${level}"]`).classList.add('selected');
+            }
+
+            resetCheckInForm() {
+                this.selectedCrowdLevel = null;
+                document.getElementById('checkInForm').reset();
+                document.querySelectorAll('.crowd-level-btn').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+                // Clear location fields
+                document.getElementById('locationName').value = '';
+                document.getElementById('locationAddress').value = '';
+                // Clear place picker
+                const placePicker = document.getElementById('place-picker');
+                if (placePicker) {
+                    placePicker.value = null;
+                }
+                // Hide map container
+                const mapContainer = document.getElementById('place-picker-map-container');
+                if (mapContainer) {
+                    mapContainer.style.display = 'none';
+                }
+            }
+
+            submitCheckIn() {
+                const locationName = document.getElementById('locationName').value.trim();
+                const placePicker = document.getElementById('place-picker');
+                let locationAddress = document.getElementById('locationAddress').value.trim();
+                
+                // If place picker has a value, use it
+                if (placePicker && placePicker.value && placePicker.value.formattedAddress) {
+                    locationAddress = placePicker.value.formattedAddress;
+                    // Also update the hidden input
+                    document.getElementById('locationAddress').value = locationAddress;
+                }
+
+                if (!locationName || !locationAddress) {
+                    this.showToast('Please fill in location name and address', 'warning');
+                    return;
+                }
+
+                if (!this.selectedCrowdLevel) {
+                    this.showToast('Please select crowd level', 'warning');
+                    return;
+                }
+
+                // Update court status if it matches an existing court
+                const matchingCourt = this.courts.find(court => 
+                    court.name.toLowerCase() === locationName.toLowerCase() ||
+                    court.address.toLowerCase() === locationAddress.toLowerCase()
+                );
+
+                if (matchingCourt) {
+                    matchingCourt.currentStatus.crowdLevel = this.selectedCrowdLevel;
+                    matchingCourt.currentStatus.lastUpdated = new Date();
+                    matchingCourt.statusColor = this.getStatusColor(this.selectedCrowdLevel);
+                    matchingCourt.statusText = this.getStatusText(this.selectedCrowdLevel);
+                    
+                    // Update gauge
+                    this.updateCourtGauge(matchingCourt);
+                    
+                    // Update court list
+                    this.updateCourtList();
+                    this.updateFavoriteCourtsList();
+                }
+
+                this.showToast(`Location update submitted: ${locationName} at ${locationAddress} (Demo mode)`, 'success');
+                this.hideCheckInModal();
+                if (this.currentCourt) {
+                    this.loadRecentCheckIns();
+                }
+            }
+
+            getStatusText(crowdLevel) {
+                const texts = {
+                    1: 'Empty',
+                    2: 'Light',
+                    3: 'Moderate',
+                    4: 'Busy',
+                    5: 'Very Busy'
+                };
+                return texts[crowdLevel] || 'Unknown';
+            }
+
+            toggleFavorite() {
+                if (!this.currentCourt) return;
+                this.toggleCourtFavorite(this.currentCourt.id);
+            }
+
+            toggleCourtFavorite(courtId) {
+                const index = this.favoriteCourts.indexOf(courtId);
+                
+                if (index > -1) {
+                    // Remove from favorites
+                    this.favoriteCourts.splice(index, 1);
+                    this.showToast('Removed from favorites', 'success');
+                } else {
+                    // Add to favorites
+                    this.favoriteCourts.push(courtId);
+                    this.showToast('Added to favorites!', 'success');
+                }
+
+                // Save to localStorage
+                this.saveFavorites();
+
+                // Update favorite courts list
+                this.updateFavoriteCourtsList();
+
+                // Update current court detail view if viewing that court
+                if (this.currentCourt && this.currentCourt.id === courtId) {
+                    this.updateFavoriteButton();
+                }
+
+                // Update court list to reflect favorite status
+                this.updateCourtList();
+            }
+
+            updateFavoriteButton() {
+                if (!this.currentCourt) return;
+                
+                const btn = document.getElementById('favoriteBtn');
+                const isFavorited = this.favoriteCourts.includes(this.currentCourt.id);
+                
+                if (isFavorited) {
+                    btn.innerHTML = '<i class="fas fa-heart"></i> Remove from Favorites';
+                    btn.classList.add('favorited');
+                } else {
+                    btn.innerHTML = '<i class="far fa-heart"></i> Add to Favorites';
+                    btn.classList.remove('favorited');
+                }
+            }
+
+            searchCourts() {
+                const query = document.getElementById('searchInput').value.trim().toLowerCase();
+                if (!query) {
+                    this.updateCourtList();
+                    this.updateFavoriteCourtsList();
+                    return;
+                }
+
+                const filteredCourts = this.courts.filter(court => 
+                    court.name.toLowerCase().includes(query) ||
+                    court.sportType.toLowerCase().includes(query) ||
+                    court.address.toLowerCase().includes(query)
+                );
+
+                const courtList = document.getElementById('courtList');
+                courtList.innerHTML = '';
+                filteredCourts.forEach(court => {
+                    const courtCard = this.createCourtCard(court);
+                    courtList.appendChild(courtCard);
+                });
+
+                // Also filter favorite courts
+                const favoriteCourtObjects = this.courts.filter(court => 
+                    this.favoriteCourts.includes(court.id) &&
+                    (court.name.toLowerCase().includes(query) ||
+                     court.sportType.toLowerCase().includes(query) ||
+                     court.address.toLowerCase().includes(query))
+                );
+
+                const favoriteList = document.getElementById('favoriteCourtsList');
+                const noFavoritesMsg = document.getElementById('noFavoritesMessage');
+                favoriteList.innerHTML = '';
+
+                if (favoriteCourtObjects.length === 0) {
+                    noFavoritesMsg.style.display = 'block';
+                } else {
+                    noFavoritesMsg.style.display = 'none';
+                    favoriteCourtObjects.forEach(court => {
+                        const courtCard = this.createCourtCard(court, true);
+                        favoriteList.appendChild(courtCard);
+                    });
+                }
+
+                this.showToast(`Found ${filteredCourts.length} courts`, 'success');
+            }
+
+            filterCourts() {
+                const sportFilter = document.getElementById('sportFilter').value;
+                const statusFilter = document.getElementById('statusFilter').value;
+
+                let filteredCourts = this.courts;
+
+                if (sportFilter) {
+                    filteredCourts = filteredCourts.filter(court => court.sportType === sportFilter);
+                }
+
+                if (statusFilter) {
+                    const statuses = statusFilter.split(',').map(s => parseInt(s));
+                    filteredCourts = filteredCourts.filter(court => 
+                        statuses.includes(court.currentStatus.crowdLevel)
+                    );
+                }
+
+                const courtList = document.getElementById('courtList');
+                courtList.innerHTML = '';
+                filteredCourts.forEach(court => {
+                    const courtCard = this.createCourtCard(court);
+                    courtList.appendChild(courtCard);
+                });
+
+                // Also update favorite courts list in case filters affect it
+                this.updateFavoriteCourtsList();
+            }
+
+            showPage(pageName) {
+                // Hide all pages
+                document.querySelectorAll('.page').forEach(page => {
+                    page.classList.remove('active');
+                });
+
+                // Show selected page
+                document.getElementById(`${pageName}View`).classList.add('active');
+
+                // Update navigation
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                document.querySelector(`[data-page="${pageName}"]`).classList.add('active');
+
+                // Load page-specific data
+                if (pageName === 'profile') {
+                    this.loadProfileData();
+                } else if (pageName === 'analytics') {
+                    this.loadAnalyticsData();
+                    this.updatePremiumLock();
+                }
+            }
+
+            loadProfileData() {
+                if (!this.currentUser) {
+                    // Show login message without destroying the profile structure
+                    document.getElementById('profileName').textContent = 'Guest User';
+                    document.getElementById('profileEmail').textContent = 'Please sign in to view your profile';
+                    document.getElementById('profileAvatar').src = '';
+                    document.getElementById('profileCheckIns').textContent = '0';
+                    document.getElementById('profileReputation').textContent = '0';
+                    document.getElementById('profileBadges').textContent = '0';
+                    document.getElementById('profileCheckins').innerHTML = '<p class="text-center">Please sign in to view your check-ins</p>';
+                    document.getElementById('profileFavorites').innerHTML = '<p class="text-center">Please sign in to view your favorites</p>';
+                    return;
+                }
+
+                this.updateProfileView(this.currentUser);
+            }
+
+            updateProfileView(user) {
+                document.getElementById('profileName').textContent = user.name;
+                document.getElementById('profileEmail').textContent = user.email;
+                document.getElementById('profileAvatar').src = user.profilePicture;
+                document.getElementById('profileCheckIns').textContent = user.totalCheckIns;
+                document.getElementById('profileReputation').textContent = user.reputationScore;
+                document.getElementById('profileBadges').textContent = user.badges.length;
+
+                // Demo user check-ins (Julius Caesar's pickleball check-ins)
+                const demoUserCheckIns = [
+                    {
+                        court: { name: 'Hillcrest Park' },
+                        crowdLevel: 5,
+                        comment: 'Very busy today, but great competition!',
+                        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) // 1 day ago
+                    },
+                    {
+                        court: { name: 'Clyde Recreation Center' },
+                        crowdLevel: 4,
+                        comment: 'Excellent indoor courts, well maintained',
+                        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) // 3 days ago
+                    },
+                    {
+                        court: { name: 'Quail Orchard Park' },
+                        crowdLevel: 3,
+                        comment: 'Perfect weather for pickleball',
+                        createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000) // 5 days ago
+                    },
+                    {
+                        court: { name: 'Sharon Park' },
+                        crowdLevel: 3,
+                        comment: 'Good session with friends',
+                        createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // 7 days ago
+                    }
+                ];
+
+                this.updateUserCheckIns(demoUserCheckIns);
+                
+                // Update profile favorites
+                this.updateProfileFavorites();
+            }
+            
+            updateProfileFavorites() {
+                const profileFavoritesContainer = document.getElementById('profileFavorites');
+                profileFavoritesContainer.innerHTML = '';
+                
+                if (this.favoriteCourts.length === 0) {
+                    profileFavoritesContainer.innerHTML = '<p>No favorite courts yet. Click the heart icon on any court to add it to your favorites.</p>';
+                    return;
+                }
+                
+                // Get favorite court objects from the courts array
+                const favoriteCourtObjects = this.courts.filter(court => 
+                    this.favoriteCourts.includes(court.id)
+                );
+                
+                favoriteCourtObjects.forEach(court => {
+                    const courtCard = this.createCourtCard(court, true);
+                    profileFavoritesContainer.appendChild(courtCard);
+                });
+            }
+
+            updateUserCheckIns(checkIns) {
+                const container = document.getElementById('profileCheckins');
+                if (checkIns.length === 0) {
+                    container.innerHTML = '<p>No check-ins yet</p>';
+                    return;
+                }
+
+                container.innerHTML = checkIns.map(checkIn => `
+                    <div class="checkin-item">
+                        <div class="checkin-header">
+                            <div class="court-card-name">${checkIn.court.name}</div>
+                            <div class="checkin-time">${this.formatTimeAgo(checkIn.createdAt)}</div>
+                        </div>
+                        <div class="court-card-status">
+                            <div class="status-indicator ${this.getStatusColor(checkIn.crowdLevel)}"></div>
+                            <span>Level ${checkIn.crowdLevel}</span>
+                        </div>
+                        ${checkIn.comment ? `<div class="checkin-comment">${checkIn.comment}</div>` : ''}
+                    </div>
+                `).join('');
+            }
+
+            loadAnalyticsData() {
+                // Load courts for both the hidden select and the dynamic dropdown
+                const select = document.getElementById('analyticsCourtSelect');
+                const dropdownList = document.getElementById('courtSelectorList');
+                const searchInput = document.getElementById('courtSearchInput');
+                
+                // Clear existing options
+                select.innerHTML = '<option value="">Select a court...</option>';
+                dropdownList.innerHTML = '';
+                
+                // Populate both dropdowns
+                this.courts.forEach(court => {
+                    // Hidden select for form compatibility
+                    const option = document.createElement('option');
+                    option.value = court.id;
+                    option.textContent = court.name;
+                    select.appendChild(option);
+                    
+                    // Dynamic dropdown item
+                    const dropdownItem = document.createElement('div');
+                    dropdownItem.className = 'court-selector-item';
+                    dropdownItem.dataset.courtId = court.id;
+                    dropdownItem.innerHTML = `
+                        <div class="court-selector-item-content">
+                            <div class="court-selector-item-main">
+                                <span class="court-selector-item-name">${court.name}</span>
+                                <span class="court-selector-item-status ${court.statusColor}">
+                                    <i class="fas fa-circle"></i>
+                                    ${court.statusText}
+                                </span>
+                            </div>
+                            <div class="court-selector-item-details">
+                                <span class="court-selector-item-sport">${court.sportType}</span>
+                                <span class="court-selector-item-rating">
+                                    <i class="fas fa-star"></i>
+                                    ${court.rating.average.toFixed(1)}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Add click handler
+                    dropdownItem.addEventListener('click', () => {
+                        this.selectCourtForAnalytics(court.id, court.name);
+                    });
+                    
+                    dropdownList.appendChild(dropdownItem);
+                });
+                
+                // Setup search functionality
+                this.setupCourtSelectorSearch();
+            }
+            
+            setupCourtSelectorSearch() {
+                const searchInput = document.getElementById('courtSearchInput');
+                const dropdown = document.getElementById('courtSelectorDropdown');
+                const dropdownList = document.getElementById('courtSelectorList');
+                const selectorInput = document.getElementById('courtSelectorInput');
+                const arrow = document.getElementById('courtSelectorArrow');
+                
+                // Toggle dropdown on input click
+                selectorInput.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const isOpen = dropdown.style.display !== 'none';
+                    dropdown.style.display = isOpen ? 'none' : 'block';
+                    arrow.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+                    if (!isOpen) {
+                        searchInput.focus();
+                    }
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!selectorInput.contains(e.target) && !dropdown.contains(e.target)) {
+                        dropdown.style.display = 'none';
+                        arrow.style.transform = 'rotate(0deg)';
+                    }
+                });
+                
+                // Search/filter functionality
+                searchInput.addEventListener('input', (e) => {
+                    const query = e.target.value.toLowerCase().trim();
+                    const items = dropdownList.querySelectorAll('.court-selector-item');
+                    
+                    items.forEach(item => {
+                        const name = item.querySelector('.court-selector-item-name').textContent.toLowerCase();
+                        const sport = item.querySelector('.court-selector-item-sport').textContent.toLowerCase();
+                        const matches = name.includes(query) || sport.includes(query);
+                        item.style.display = matches ? 'flex' : 'none';
+                    });
+                });
+                
+                // Prevent dropdown from closing when clicking inside
+                dropdown.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                });
+            }
+            
+            selectCourtForAnalytics(courtId, courtName) {
+                // Update hidden select
+                const select = document.getElementById('analyticsCourtSelect');
+                select.value = courtId;
+                
+                // Update search input display
+                const searchInput = document.getElementById('courtSearchInput');
+                searchInput.value = courtName;
+                
+                // Close dropdown
+                const dropdown = document.getElementById('courtSelectorDropdown');
+                const arrow = document.getElementById('courtSelectorArrow');
+                dropdown.style.display = 'none';
+                arrow.style.transform = 'rotate(0deg)';
+                
+                // Load analytics for selected court
+                this.loadAnalytics();
+            }
+
+            loadAnalytics() {
+                const courtId = document.getElementById('analyticsCourtSelect').value;
+                if (!courtId) return;
+
+                // Get unique analytics data for each court
+                const analyticsData = this.getCourtAnalyticsData(courtId);
+                this.updateAnalyticsCharts(analyticsData);
+            }
+            
+            getCourtAnalyticsData(courtId) {
+                // Unique analytics data for each court based on their characteristics
+                const dataSets = {
+                    'court1': {
+                        // Hillcrest Park - Very Busy
+                    hourlyPatterns: [
+                            { hour: 6, averageCrowdLevel: 3.5, checkInCount: 8 },
+                            { hour: 7, averageCrowdLevel: 4.2, checkInCount: 15 },
+                            { hour: 8, averageCrowdLevel: 4.8, checkInCount: 22 },
+                            { hour: 9, averageCrowdLevel: 4.9, checkInCount: 28 },
+                            { hour: 10, averageCrowdLevel: 5.0, checkInCount: 32 },
+                            { hour: 11, averageCrowdLevel: 4.9, checkInCount: 30 },
+                            { hour: 12, averageCrowdLevel: 4.8, checkInCount: 35 },
+                            { hour: 13, averageCrowdLevel: 4.7, checkInCount: 33 },
+                            { hour: 14, averageCrowdLevel: 4.9, checkInCount: 38 },
+                            { hour: 15, averageCrowdLevel: 5.0, checkInCount: 40 },
+                            { hour: 16, averageCrowdLevel: 4.8, checkInCount: 36 },
+                            { hour: 17, averageCrowdLevel: 4.6, checkInCount: 32 },
+                            { hour: 18, averageCrowdLevel: 4.4, checkInCount: 28 },
+                            { hour: 19, averageCrowdLevel: 4.2, checkInCount: 24 },
+                            { hour: 20, averageCrowdLevel: 3.8, checkInCount: 18 },
+                            { hour: 21, averageCrowdLevel: 3.2, checkInCount: 12 }
+                        ],
+                        crowdDistribution: [
+                            { _id: 1, count: 5 },
+                            { _id: 2, count: 12 },
+                            { _id: 3, count: 25 },
+                            { _id: 4, count: 35 },
+                            { _id: 5, count: 48 }
+                        ],
+                        summary: {
+                            totalCheckIns: 125,
+                            averageCrowdLevel: 4.3,
+                            peakHour: 15
+                        }
+                    },
+                    'court2': {
+                        // Rotary Park - Busy
+                        hourlyPatterns: [
+                            { hour: 6, averageCrowdLevel: 2.0, checkInCount: 4 },
+                            { hour: 7, averageCrowdLevel: 2.8, checkInCount: 8 },
+                            { hour: 8, averageCrowdLevel: 3.5, checkInCount: 12 },
+                            { hour: 9, averageCrowdLevel: 3.8, checkInCount: 16 },
+                            { hour: 10, averageCrowdLevel: 4.0, checkInCount: 20 },
+                            { hour: 11, averageCrowdLevel: 4.2, checkInCount: 22 },
+                            { hour: 12, averageCrowdLevel: 4.3, checkInCount: 25 },
+                            { hour: 13, averageCrowdLevel: 4.4, checkInCount: 28 },
+                            { hour: 14, averageCrowdLevel: 4.5, checkInCount: 30 },
+                            { hour: 15, averageCrowdLevel: 4.3, checkInCount: 27 },
+                            { hour: 16, averageCrowdLevel: 4.1, checkInCount: 24 },
+                            { hour: 17, averageCrowdLevel: 3.8, checkInCount: 20 },
+                            { hour: 18, averageCrowdLevel: 3.5, checkInCount: 16 },
+                            { hour: 19, averageCrowdLevel: 3.0, checkInCount: 12 },
+                            { hour: 20, averageCrowdLevel: 2.5, checkInCount: 8 },
+                            { hour: 21, averageCrowdLevel: 2.0, checkInCount: 5 }
+                        ],
+                        crowdDistribution: [
+                            { _id: 1, count: 8 },
+                            { _id: 2, count: 18 },
+                            { _id: 3, count: 32 },
+                            { _id: 4, count: 42 },
+                            { _id: 5, count: 15 }
+                        ],
+                        summary: {
+                            totalCheckIns: 115,
+                            averageCrowdLevel: 3.6,
+                            peakHour: 14
+                        }
+                    },
+                    'court3': {
+                        // Quail Orchard Park - Moderate
+                        hourlyPatterns: [
+                            { hour: 6, averageCrowdLevel: 1.5, checkInCount: 3 },
+                            { hour: 7, averageCrowdLevel: 2.0, checkInCount: 5 },
+                            { hour: 8, averageCrowdLevel: 2.5, checkInCount: 8 },
+                            { hour: 9, averageCrowdLevel: 2.8, checkInCount: 10 },
+                            { hour: 10, averageCrowdLevel: 3.0, checkInCount: 12 },
+                            { hour: 11, averageCrowdLevel: 3.2, checkInCount: 14 },
+                            { hour: 12, averageCrowdLevel: 3.4, checkInCount: 16 },
+                            { hour: 13, averageCrowdLevel: 3.5, checkInCount: 18 },
+                            { hour: 14, averageCrowdLevel: 3.6, checkInCount: 20 },
+                            { hour: 15, averageCrowdLevel: 3.4, checkInCount: 18 },
+                            { hour: 16, averageCrowdLevel: 3.2, checkInCount: 15 },
+                            { hour: 17, averageCrowdLevel: 3.0, checkInCount: 13 },
+                            { hour: 18, averageCrowdLevel: 2.8, checkInCount: 11 },
+                            { hour: 19, averageCrowdLevel: 2.5, checkInCount: 8 },
+                            { hour: 20, averageCrowdLevel: 2.0, checkInCount: 5 },
+                        { hour: 21, averageCrowdLevel: 1.5, checkInCount: 3 }
+                    ],
+                        crowdDistribution: [
+                            { _id: 1, count: 18 },
+                            { _id: 2, count: 28 },
+                            { _id: 3, count: 42 },
+                            { _id: 4, count: 22 },
+                            { _id: 5, count: 5 }
+                        ],
+                        summary: {
+                            totalCheckIns: 115,
+                            averageCrowdLevel: 2.9,
+                            peakHour: 14
+                        }
+                    },
+                    'court4': {
+                        // Bonneville Park - Empty
+                        hourlyPatterns: [
+                            { hour: 6, averageCrowdLevel: 1.0, checkInCount: 1 },
+                            { hour: 7, averageCrowdLevel: 1.2, checkInCount: 2 },
+                            { hour: 8, averageCrowdLevel: 1.3, checkInCount: 3 },
+                            { hour: 9, averageCrowdLevel: 1.4, checkInCount: 4 },
+                            { hour: 10, averageCrowdLevel: 1.5, checkInCount: 5 },
+                            { hour: 11, averageCrowdLevel: 1.6, checkInCount: 6 },
+                            { hour: 12, averageCrowdLevel: 1.7, checkInCount: 7 },
+                            { hour: 13, averageCrowdLevel: 1.8, checkInCount: 8 },
+                            { hour: 14, averageCrowdLevel: 1.9, checkInCount: 9 },
+                            { hour: 15, averageCrowdLevel: 1.8, checkInCount: 8 },
+                            { hour: 16, averageCrowdLevel: 1.7, checkInCount: 7 },
+                            { hour: 17, averageCrowdLevel: 1.6, checkInCount: 6 },
+                            { hour: 18, averageCrowdLevel: 1.5, checkInCount: 5 },
+                            { hour: 19, averageCrowdLevel: 1.4, checkInCount: 4 },
+                            { hour: 20, averageCrowdLevel: 1.3, checkInCount: 3 },
+                            { hour: 21, averageCrowdLevel: 1.2, checkInCount: 2 }
+                        ],
+                        crowdDistribution: [
+                            { _id: 1, count: 45 },
+                            { _id: 2, count: 32 },
+                            { _id: 3, count: 18 },
+                            { _id: 4, count: 8 },
+                            { _id: 5, count: 2 }
+                        ],
+                        summary: {
+                            totalCheckIns: 105,
+                            averageCrowdLevel: 1.6,
+                            peakHour: 14
+                        }
+                    },
+                    'court5': {
+                        // Sharon Park - Moderate
+                        hourlyPatterns: [
+                            { hour: 6, averageCrowdLevel: 1.8, checkInCount: 4 },
+                            { hour: 7, averageCrowdLevel: 2.2, checkInCount: 6 },
+                            { hour: 8, averageCrowdLevel: 2.6, checkInCount: 9 },
+                            { hour: 9, averageCrowdLevel: 2.9, checkInCount: 11 },
+                            { hour: 10, averageCrowdLevel: 3.1, checkInCount: 13 },
+                            { hour: 11, averageCrowdLevel: 3.3, checkInCount: 15 },
+                            { hour: 12, averageCrowdLevel: 3.4, checkInCount: 17 },
+                            { hour: 13, averageCrowdLevel: 3.5, checkInCount: 19 },
+                            { hour: 14, averageCrowdLevel: 3.6, checkInCount: 21 },
+                            { hour: 15, averageCrowdLevel: 3.5, checkInCount: 19 },
+                            { hour: 16, averageCrowdLevel: 3.3, checkInCount: 17 },
+                            { hour: 17, averageCrowdLevel: 3.1, checkInCount: 14 },
+                            { hour: 18, averageCrowdLevel: 2.9, checkInCount: 12 },
+                            { hour: 19, averageCrowdLevel: 2.6, checkInCount: 9 },
+                            { hour: 20, averageCrowdLevel: 2.2, checkInCount: 6 },
+                            { hour: 21, averageCrowdLevel: 1.8, checkInCount: 4 }
+                    ],
+                    crowdDistribution: [
+                        { _id: 1, count: 15 },
+                        { _id: 2, count: 25 },
+                            { _id: 3, count: 38 },
+                            { _id: 4, count: 28 },
+                            { _id: 5, count: 9 }
+                    ],
+                    summary: {
+                            totalCheckIns: 115,
+                            averageCrowdLevel: 3.0,
+                        peakHour: 14
+                    }
+                    },
+                    'court6': {
+                        // Clyde Recreation Center - Busy
+                        hourlyPatterns: [
+                            { hour: 6, averageCrowdLevel: 2.5, checkInCount: 6 },
+                            { hour: 7, averageCrowdLevel: 3.2, checkInCount: 10 },
+                            { hour: 8, averageCrowdLevel: 3.8, checkInCount: 15 },
+                            { hour: 9, averageCrowdLevel: 4.0, checkInCount: 18 },
+                            { hour: 10, averageCrowdLevel: 4.2, checkInCount: 22 },
+                            { hour: 11, averageCrowdLevel: 4.3, checkInCount: 24 },
+                            { hour: 12, averageCrowdLevel: 4.4, checkInCount: 26 },
+                            { hour: 13, averageCrowdLevel: 4.5, checkInCount: 28 },
+                            { hour: 14, averageCrowdLevel: 4.6, checkInCount: 30 },
+                            { hour: 15, averageCrowdLevel: 4.5, checkInCount: 28 },
+                            { hour: 16, averageCrowdLevel: 4.3, checkInCount: 25 },
+                            { hour: 17, averageCrowdLevel: 4.0, checkInCount: 22 },
+                            { hour: 18, averageCrowdLevel: 3.7, checkInCount: 19 },
+                            { hour: 19, averageCrowdLevel: 3.3, checkInCount: 15 },
+                            { hour: 20, averageCrowdLevel: 2.8, checkInCount: 11 },
+                            { hour: 21, averageCrowdLevel: 2.2, checkInCount: 7 }
+                        ],
+                        crowdDistribution: [
+                            { _id: 1, count: 6 },
+                            { _id: 2, count: 15 },
+                            { _id: 3, count: 28 },
+                            { _id: 4, count: 45 },
+                            { _id: 5, count: 21 }
+                        ],
+                        summary: {
+                            totalCheckIns: 115,
+                            averageCrowdLevel: 3.8,
+                            peakHour: 14
+                        }
+                    }
+                };
+                
+                // Return data for the selected court, or default data if not found
+                return dataSets[courtId] || dataSets['court3'];
+            }
+
+            updateAnalyticsCharts(analytics) {
+                // Update busy hours chart
+                this.updateBusyHoursChart(analytics.hourlyPatterns);
+                
+                // Update crowd distribution chart
+                this.updateCrowdDistributionChart(analytics.crowdDistribution);
+                
+                // Update summary
+                this.updateAnalyticsSummary(analytics.summary);
+            }
+
+            updateBusyHoursChart(hourlyData) {
+                const ctx = document.getElementById('busyHoursChart').getContext('2d');
+                
+                // Destroy existing chart if it exists
+                if (this.busyHoursChart) {
+                    this.busyHoursChart.destroy();
+                }
+
+                const hours = Array.from({length: 24}, (_, i) => i);
+                const data = hours.map(hour => {
+                    const found = hourlyData.find(item => item.hour === hour);
+                    return found ? found.averageCrowdLevel : 0;
+                });
+
+                this.busyHoursChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: hours.map(h => `${h}:00`),
+                        datasets: [{
+                            label: 'Average Crowd Level',
+                            data: data,
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 5
+                            }
+                        }
+                    }
+                });
+            }
+
+            updateCrowdDistributionChart(distributionData) {
+                const ctx = document.getElementById('crowdDistributionChart').getContext('2d');
+                
+                if (this.crowdDistributionChart) {
+                    this.crowdDistributionChart.destroy();
+                }
+
+                const labels = ['Empty', 'Light', 'Moderate', 'Busy', 'Very Busy'];
+                const data = [1, 2, 3, 4, 5].map(level => {
+                    const found = distributionData.find(item => item._id === level);
+                    return found ? found.count : 0;
+                });
+
+                this.crowdDistributionChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: [
+                                '#10b981',
+                                '#84cc16',
+                                '#f59e0b',
+                                '#f97316',
+                                '#ef4444'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true
+                    }
+                });
+            }
+
+            updateAnalyticsSummary(summary) {
+                const container = document.getElementById('analyticsSummary');
+                container.innerHTML = `
+                    <div class="summary-card">
+                        <div class="summary-card-value">${summary.totalCheckIns}</div>
+                        <div class="summary-card-label">Total Check-ins</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-card-value">${summary.averageCrowdLevel}</div>
+                        <div class="summary-card-label">Avg Crowd Level</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-card-value">${summary.peakHour}:00</div>
+                        <div class="summary-card-label">Peak Hour</div>
+                    </div>
+                `;
+            }
+
+            handleDemoLogin() {
+                // Try Google Sign-In first if available
+                if (typeof gapi !== 'undefined' && gapi.auth2) {
+                    const authInstance = gapi.auth2.getAuthInstance();
+                    if (authInstance && authInstance.isSignedIn.get()) {
+                        const googleUser = authInstance.currentUser.get();
+                        onSignIn(googleUser);
+                        return;
+                    }
+                }
+                
+                // Fallback to demo login - Julius Caesar
+                const mockUser = {
+                    id: 'demo-user-123',
+                    name: 'Julius Caesar',
+                    email: 'julius.caesar@courtcheck.com',
+                    profilePicture: './images/julius-caesar-pickleball.png',
+                    totalCheckIns: 18,
+                    reputationScore: 145,
+                    badges: ['consistent', 'helpful', 'explorer', 'champion']
+                };
+
+                this.currentUser = mockUser;
+                this.updateAuthUI();
+                this.showToast('Signed in successfully! (Demo mode)', 'success');
+            }
+            
+            handleGoogleSignIn(user) {
+                this.currentUser = {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    profilePicture: user.imageUrl,
+                    totalCheckIns: 0,
+                    reputationScore: 0,
+                    badges: []
+                };
+                this.updateAuthUI();
+                this.showToast(`Welcome, ${user.name}!`, 'success');
+                
+                // TODO: In production, verify the ID token on the server
+                // const idToken = googleUser.getAuthResponse().id_token;
+                // Send to backend for verification
+            }
+
+            logout() {
+                // Sign out from Google if signed in
+                if (typeof gapi !== 'undefined' && gapi.auth2) {
+                    const auth2 = gapi.auth2.getAuthInstance();
+                    if (auth2) {
+                        auth2.signOut();
+                    }
+                }
+                
+                this.currentUser = null;
+                this.updateAuthUI();
+                this.showToast('Signed out successfully', 'success');
+            }
+
+            updateAuthUI() {
+                const loginBtn = document.getElementById('loginBtn');
+                const userMenu = document.getElementById('userMenu');
+                
+                if (this.currentUser) {
+                    loginBtn.classList.add('hidden');
+                    userMenu.classList.remove('hidden');
+                    document.getElementById('userName').textContent = this.currentUser.name;
+                    document.getElementById('userAvatar').src = this.currentUser.profilePicture;
+                    
+                    // If we're on the profile page, update it immediately
+                    const profileView = document.getElementById('profileView');
+                    if (profileView && profileView.classList.contains('active')) {
+                        this.loadProfileData();
+                    }
+                } else {
+                    loginBtn.classList.remove('hidden');
+                    userMenu.classList.add('hidden');
+                    
+                    // If we're on the profile page, show login message
+                    const profileView = document.getElementById('profileView');
+                    if (profileView && profileView.classList.contains('active')) {
+                        this.loadProfileData();
+                    }
+                }
+            }
+
+            getStatusColor(crowdLevel) {
+                const colors = {
+                    1: 'green',
+                    2: 'green',
+                    3: 'yellow',
+                    4: 'red',
+                    5: 'red'
+                };
+                return colors[crowdLevel] || 'green';
+            }
+
+            formatTimeAgo(date) {
+                const now = new Date();
+                const diffInSeconds = Math.floor((now - date) / 1000);
+                
+                if (diffInSeconds < 60) return 'just now';
+                if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+                if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+                return `${Math.floor(diffInSeconds / 86400)}d ago`;
+            }
+
+            showToast(message, type = 'info') {
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.textContent = message;
+                
+                document.getElementById('toastContainer').appendChild(toast);
+                
+                setTimeout(() => {
+                    toast.remove();
+                }, 5000);
+            }
+
+            unlockPremium() {
+                this.isPremium = true;
+                this.savePremiumStatus();
+                this.updatePremiumLock();
+                this.showToast('Premium unlocked! Enjoy advanced analytics.', 'success');
+            }
+
+            updatePremiumLock() {
+                const overlay = document.getElementById('premiumLockOverlay');
+                const content = document.getElementById('analyticsContent');
+                
+                if (this.isPremium) {
+                    // Hide overlay, show content
+                    overlay.classList.add('hidden');
+                    content.classList.remove('hidden');
+                } else {
+                    // Show overlay, hide content
+                    overlay.classList.remove('hidden');
+                    content.classList.add('hidden');
+                }
+            }
+
+            updateCourtGauge(court) {
+                // This will be called when court status updates
+                // Find the court card and update its gauge
+                // Use shared function to ensure consistency with detail page
+                const courtCards = document.querySelectorAll('.court-card');
+                courtCards.forEach(card => {
+                    const favoriteBtn = card.querySelector('.court-card-favorite-btn');
+                    if (favoriteBtn && favoriteBtn.dataset.courtId === court.id) {
+                        const crowdLevel = court.currentStatus?.crowdLevel || 3;
+                        const gaugePercentage = this.calculateGaugePercentage(crowdLevel);
+                        const gaugeFill = card.querySelector('.gauge-fill');
+                        const gaugeNeedle = card.querySelector('.gauge-needle');
+                        if (gaugeFill) {
+                            gaugeFill.style.width = `${gaugePercentage}%`;
+                        }
+                        if (gaugeNeedle) {
+                            gaugeNeedle.style.left = `${gaugePercentage}%`;
+                        }
+                    }
+                });
+                
+                // Also update detail page gauge if this court is currently displayed
+                if (this.currentCourt && this.currentCourt.id === court.id) {
+                    this.currentCourt = court; // Update the stored court object
+                    this.updateCourtDetailGauge();
+                }
+            }
+        }
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            window.app = new StandaloneCourtCheckApp();
+        });
+    </script>
+</body>
+</html>
