@@ -154,7 +154,7 @@ function closeModal() { $('#modal').innerHTML = ''; }
 let map, markers = {};
 function initMap() {
   map = L.map('map', { zoomControl: true, attributionControl: true }).setView(DEFAULT_CENTER, 12);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains: 'abcd', attribution: '© OpenStreetMap contributors © CARTO' }).addTo(map);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(map);
   COURTS.forEach(c => {
     const m = L.marker([c.lat, c.lng], { icon: pinIcon(c) }).addTo(map);
     m.on('click', () => pinClick(c.id));
