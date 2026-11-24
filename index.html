@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>COURTS 2.0 – Find your game. Anytime.</title>
 <meta name="theme-color" content="#0b1220">
-<link rel="icon" href="images/logo.png">
+<link rel="icon" href="images/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
@@ -14,25 +14,33 @@
 <body data-track="vision">
 <div class="app">
   <header class="top">
-    <div class="brand"><img src="images/logo.png" alt="COURTS" onload="this.nextElementSibling.style.display='none'"><span>COURTS</span><small>2.0</small></div>
-    <nav class="navtop" id="navtop"></nav>
-    <div class="seg" id="trackSeg" role="tablist" aria-label="Data source">
-      <button data-track="vision" title="Court status from camera + Roboflow computer vision"><span class="dot"></span>Vision</button>
-      <button data-track="community" title="Court status from player check-ins"><span class="dot"></span>Community</button>
-    </div>
+    <div class="brand"><img src="images/logo-v2.svg" alt=""><span>COURTS</span><small>2.0</small></div>
+    <nav class="navtop" id="navtop" aria-label="Main"></nav>
   </header>
+  <div class="subbar">
+    <span>Data source</span>
+    <div class="seg" id="trackSeg" role="group" aria-label="Data source">
+      <button data-track="vision" title="Court status from camera + Roboflow computer vision"><span class="dot"></span>Vision · camera + AI</button>
+      <button data-track="community" title="Court status from player check-ins"><span class="dot"></span>Community · check-ins</button>
+    </div>
+    <span id="trackHint"></span>
+  </div>
 
   <main>
     <section class="view explore" id="v-explore">
       <aside class="panel" id="panel"></aside>
       <div class="mapwrap">
         <div id="map"></div>
+        <div id="mapChips"></div>
         <div class="maptools">
           <button class="mbtn" id="locBtn">Locate me</button>
           <button class="mbtn" id="fitBtn">Show all</button>
         </div>
         <div class="legend" id="legend"><span><i style="background:var(--green)"></i>Open</span><span><i style="background:var(--amber)"></i>Busy</span><span><i style="background:var(--red)"></i>Full</span><span><i style="background:var(--grey)"></i>No data</span></div>
+        <div id="peek"></div>
       </div>
+      <button id="viewToggle" aria-label="Switch between map and list">Map</button>
+      <button class="fab" id="fabCi">+ Check in</button>
     </section>
     <section class="view hidden" id="v-lab"></section>
     <section class="view hidden" id="v-alerts"></section>

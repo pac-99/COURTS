@@ -43,7 +43,7 @@ const store = {
 const params = new URLSearchParams(location.search);
 const state = {
   track: params.get('track') === 'community' ? 'community' : params.get('track') === 'vision' ? 'vision' : store.get('track', 'vision'),
-  view: 'explore', sport: 'all', status: 'all', q: '', sel: null,
+  view: 'explore', tab: 'report', mob: 'list', sport: 'all', status: 'all', q: '', sel: null,
   favs: store.get('favs', []), alerts: store.get('alerts', []), premium: store.get('premium', false),
   checkins: store.get('checkins', []), user: store.get('user', { name: 'Guest player', points: 0 }),
   rf: store.get('rf', { key: '', model: MODELS[0].id }),
@@ -157,7 +157,7 @@ function initMap() {
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19, subdomains: 'abcd', attribution: '© OpenStreetMap contributors © CARTO' }).addTo(map);
   COURTS.forEach(c => {
     const m = L.marker([c.lat, c.lng], { icon: pinIcon(c) }).addTo(map);
-    m.on('click', () => openCourt(c.id));
+    m.on('click', () => pinClick(c.id));
     markers[c.id] = m;
   });
   fitAll();
@@ -185,25 +185,43 @@ function matches(c) {
   if (state.q) { const q = state.q.toLowerCase(); if (!(c.name + ' ' + c.address + ' ' + c.sport).toLowerCase().includes(q)) return false; }
   return true;
 }
+function futureOcc(c, h, dow) { return Math.min(1, hourFactor(h) * c.pop * (dow === 0 || dow === 6 ? 1.25 : 1)); }
+function sparkHTML(c) {
+  const h0 = Math.floor(nowHour()); let out = '';
+  for (let i = 0; i < 10 && h0 + i <= 22; i++) { const v = futureOcc(c, h0 + i, new Date().getDay()); out += '<i style="height:' + Math.max(14, v * 100) + '%;background:' + ST[statusOf(v)].color + '"></i>'; }
+  return '<div class="spark" title="Forecast, next hours">' + out + '</div>';
+}
+function detailLine(r) {
+  const base = r.count != null ? r.count + ' of ' + r.cap + ' players' : r.occ != null ? '≈ ' + Math.round(r.occ * r.cap) + ' of ' + r.cap + ' players' : 'No reports yet';
+  const w = waitEst(r); return base + (w ? ' · ~' + w + ' min wait' : '');
+}
 function cardHTML(c) {
   const r = reading(c), st = statusOf(r.occ), fav = state.favs.includes(c.id);
-  return '<div class="card court" data-open="' + c.id + '"><div class="ico">' + SP[c.sport].icon + '</div><div class="meta"><div class="nm">' + esc(c.name) + '</div>' +
-    '<div class="sub">' + pill(st) + (r.count != null ? '<b>' + r.count + '/' + r.cap + ' players</b>' : '') + srcBadge(r) + '<span>' + dist(c).toFixed(1) + ' mi</span></div>' +
-    '<div class="bar"><i style="width:' + Math.round((r.occ || 0) * 100) + '%;background:' + ST[st].color + '"></i></div></div>' +
-    '<button class="fav ' + (fav ? 'on' : '') + '" data-fav="' + c.id + '" aria-label="Favorite">' + (fav ? '♥' : '♡') + '</button></div>';
+  return '<article class="court" tabindex="0" data-open="' + c.id + '" aria-label="' + esc(c.name) + ', ' + ST[st].label + '">' +
+    '<div class="rbar" style="background:' + ST[st].color + '"></div><div class="cbody">' +
+    '<div class="ctop"><div><div class="nm">' + esc(c.name) + '</div><div class="sub">' + SP[c.sport].icon + ' ' + SP[c.sport].name + ' · ' + c.courts + ' court' + (c.courts > 1 ? 's' : '') + ' · ' + dist(c).toFixed(1) + ' mi</div></div>' +
+    '<button class="fav ' + (fav ? 'on' : '') + '" data-fav="' + c.id + '" aria-label="' + (fav ? 'Remove from' : 'Add to') + ' favorites">' + (fav ? '♥' : '♡') + '</button></div>' +
+    '<div class="crow"><div><div class="state" style="color:' + ST[st].color + '">' + ST[st].label.toUpperCase() + '</div><div class="cdet">' + detailLine(r) + '</div></div>' + sparkHTML(c) + '</div>' +
+    '<div class="csrc">' + srcBadge(r) + '</div></div></article>';
+}
+function chipsHTML() {
+  return ['all', ...Object.keys(SP)].map(s => '<button class="chip ' + (state.sport === s ? 'on' : '') + '" data-sport="' + s + '">' + (s === 'all' ? 'All' : SP[s].icon + ' ' + SP[s].name) + '</button>').join('');
 }
 function renderPanel() {
-  const p = $('#panel');
+  const p = $('#panel'), ex = $('#v-explore');
+  ex.classList.toggle('has-sel', !!state.sel); ex.classList.toggle('mob-map', state.mob === 'map');
+  const vt = $('#viewToggle'); if (vt) vt.textContent = state.mob === 'map' ? '☰  List' : '🗺  Map';
+  const mc = $('#mapChips'); if (mc) mc.innerHTML = chipsHTML();
   if (state.sel) { renderDetail(); return; }
   const list = COURTS.filter(matches).sort((a, b) => dist(a) - dist(b));
   const favs = COURTS.filter(c => state.favs.includes(c.id));
   p.innerHTML =
-    '<div class="search"><input id="q" placeholder="Search courts, sports, neighborhoods" value="' + esc(state.q) + '"><button class="btn primary" id="addUpd">+ Report</button></div>' +
-    '<div class="chips" id="sportChips">' + ['all', ...Object.keys(SP)].map(s => '<button class="chip ' + (state.sport === s ? 'on' : '') + '" data-sport="' + s + '">' + (s === 'all' ? 'All sports' : SP[s].icon + ' ' + SP[s].name) + '</button>').join('') + '</div>' +
+    '<div class="h1">Courts near San Francisco</div>' +
+    '<div class="search"><input id="q" type="search" aria-label="Search courts" placeholder="Search courts or sports" value="' + esc(state.q) + '"><button class="btn primary" id="addUpd">Report</button></div>' +
+    '<div class="chips" id="sportChips">' + chipsHTML() + '</div>' +
     '<div class="chips">' + ['all', 'available', 'busy', 'full'].map(s => '<button class="chip ' + (state.status === s ? 'on' : '') + '" data-status="' + s + '">' + (s === 'all' ? 'Any status' : ST[s].label) + '</button>').join('') + '</div>' +
-    (state.track === 'vision' ? '<div class="note vio">Vision track: courts with a camera show live player counts from computer vision; others fall back to community reports.</div>' : '<div class="note ok">Community track: status comes from player check-ins, weighted by how recent they are.</div>') +
     (favs.length ? '<div class="h2">Favorites</div><div id="favs">' + favs.map(cardHTML).join('') + '</div>' : '') +
-    '<div class="h2">Nearby courts · ' + list.length + '</div><div id="cards">' + (list.map(cardHTML).join('') || '<div class="card muted">No courts match those filters.</div>') + '</div>';
+    '<div class="h2">All courts · ' + list.length + '</div><div id="cards">' + (list.map(cardHTML).join('') || '<div class="card muted">No courts match those filters.</div>') + '</div>';
 }
 function refreshCards() {
   if (state.sel) { updateDetail(); return; }
@@ -214,53 +232,91 @@ function refreshCards() {
 }
 
 /* ---------- court detail ---------- */
-function ringSVG(occ, st) {
-  const R = 40, C = 2 * Math.PI * R, v = occ == null ? 0 : occ;
-  return '<svg width="92" height="92" viewBox="0 0 92 92"><circle cx="46" cy="46" r="' + R + '" fill="none" stroke="#e2e8f0" stroke-width="9"/><circle id="ringArc" cx="46" cy="46" r="' + R + '" fill="none" stroke="' + ST[st].color + '" stroke-width="9" stroke-linecap="round" stroke-dasharray="' + C + '" stroke-dashoffset="' + C * (1 - v) + '" style="transition:stroke-dashoffset .6s"/></svg>';
-}
-function busyData(c) {
-  const out = []; for (let h = 6; h <= 22; h++) out.push({ h, v: Math.min(1, hourFactor(h) * c.pop) }); return out;
-}
+function busyData(c) { const out = []; for (let h = 6; h <= 22; h++) out.push({ h, v: Math.min(1, hourFactor(h) * c.pop) }); return out; }
+const fmtH = h => (h % 12 || 12) + (h < 12 ? ' AM' : ' PM');
 function chartHTML(c) {
   const d = busyData(c), nh = Math.floor(nowHour());
   const best = d.filter(x => x.h >= 8 && x.h <= 20).sort((a, b) => a.v - b.v)[0];
-  const bars = d.map(x => '<i class="' + (x.v < .4 ? 'l0' : x.v < .75 ? 'l1' : 'l2') + (x.h === nh ? ' now' : '') + '" style="height:' + Math.max(4, x.v * 100) + '%" title="' + x.h + ':00"></i>').join('');
-  const fmt = h => (h % 12 || 12) + (h < 12 ? ' AM' : ' PM');
-  return { best: fmt(best.h), html: '<div class="chart">' + bars + '</div><div class="chartx"><span>6 AM</span><span>12 PM</span><span>6 PM</span><span>10 PM</span></div>' };
+  const bars = d.map(x => '<i class="' + (x.v < .4 ? 'l0' : x.v < .75 ? 'l1' : 'l2') + (x.h === nh ? ' now' : '') + '" style="height:' + Math.max(4, x.v * 100) + '%" title="' + fmtH(x.h) + '"></i>').join('');
+  return { best: fmtH(best.h), html: '<div class="chart">' + bars + '</div><div class="chartx"><span>6 AM</span><span>12 PM</span><span>6 PM</span><span>10 PM</span></div>' };
+}
+/* weather via Open-Meteo (free, no API key) */
+const wx = {};
+async function fetchWx(c) {
+  if (wx[c.id]) return; wx[c.id] = { loading: true };
+  try {
+    const r = await fetch('https://api.open-meteo.com/v1/forecast?latitude=' + c.lat + '&longitude=' + c.lng + '&hourly=temperature_2m,precipitation_probability,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weather_code&temperature_unit=fahrenheit&timezone=auto&forecast_days=5');
+    if (!r.ok) throw new Error('wx'); wx[c.id] = await r.json();
+  } catch (e) { wx[c.id] = { error: true }; }
+  if (state.sel === c.id && state.tab === 'forecast') renderDetail();
+}
+const wxIcon = k => k == null ? '' : k === 0 ? '☀️' : k <= 3 ? '⛅' : k < 50 ? '🌫️' : k < 70 ? '🌧️' : k < 80 ? '❄️' : k < 90 ? '🌦️' : '⛈️';
+function forecastHTML(c) {
+  fetchWx(c); const w = wx[c.id] && wx[c.id].hourly ? wx[c.id] : null, now = new Date(), nh = Math.floor(nowHour());
+  const days = [...Array(5).keys()], hrs = [...Array(16).keys()].map(i => i + 6);
+  let best = null;
+  const rows = days.map(d => {
+    const dt = new Date(now.getTime() + d * 864e5), dow = dt.getDay();
+    const cells = hrs.map(h => {
+      const v = futureOcc(c, h, dow), rain = w ? (w.hourly.precipitation_probability[d * 24 + h] || 0) : 0, tmp = w ? w.hourly.temperature_2m[d * 24 + h] : null;
+      const past = d === 0 && h < nh;
+      if (!past && d < 2 && h >= 7 && h <= 20) { const sc = v + rain / 100 * .8 + (tmp != null && (tmp < 45 || tmp > 95) ? .3 : 0); if (!best || sc < best.sc) best = { sc, d, h, rain, tmp }; }
+      return '<i class="' + (past ? 'past ' : '') + (d === 0 && h === nh ? 'nowc ' : '') + (rain >= 50 ? 'wet' : '') + '" style="background-color:' + ST[statusOf(v)].color + '" title="' + fmtH(h) + ' · ' + Math.round(v * 100) + '% full' + (w ? ' · ' + rain + '% rain' : '') + '"></i>';
+    }).join('');
+    const wd = w ? '<div class="wxchip">' + wxIcon(w.daily.weather_code[d]) + ' ' + Math.round(w.daily.temperature_2m_max[d]) + '°/' + Math.round(w.daily.temperature_2m_min[d]) + '° · ' + (w.daily.precipitation_probability_max[d] || 0) + '%</div>' : '';
+    const lbl = '<div class="d">' + (d === 0 ? 'Today' : d === 1 ? 'Tomorrow' : dt.toLocaleDateString('en-US', { weekday: 'short' })) + '<small>' + dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + '</small>' + wd + '</div>';
+    return { d, html: '<div class="fcday">' + lbl + '<div class="fcrow">' + cells + '</div></div>' };
+  });
+  const lock = !state.premium;
+  const free = rows.filter(r => r.d < 2).map(r => r.html).join(''), paid = rows.filter(r => r.d >= 2).map(r => r.html).join('');
+  const bestTxt = best ? '<div class="best">Best window: ' + (best.d === 0 ? 'today' : 'tomorrow') + ' around ' + fmtH(best.h) + '<small>Quiet court' + (w ? ', ' + (best.rain < 30 ? 'dry' : best.rain + '% rain chance') + (best.tmp != null ? ', ' + Math.round(best.tmp) + '°F' : '') : '') + '</small></div>' : '';
+  const axis = '<div class="fcax"><span></span><div><span>6 AM</span><span>12 PM</span><span>6 PM</span><span>9 PM</span></div></div>';
+  return bestTxt + '<div class="blk"><div class="fc">' + axis + free + '<div class="lock"><div class="fc">' + paid + '</div>' + (lock ? '<div class="veil"><div><b>5-day forecast</b><div class="muted" style="margin:4px 0 8px">Unlock days 3 to 5 with Premium</div><button class="btn primary sm" id="premBtn">Unlock · $3.99/mo</button></div></div>' : '') + '</div></div>' +
+    '<div class="muted" style="margin-top:10px">Crowd forecast is modelled from typical hourly patterns until enough real data exists. ' + (wx[c.id] && wx[c.id].error ? 'Weather unavailable right now.' : w ? 'Weather by Open-Meteo. Striped cells = rain likely.' : 'Loading weather…') + '</div></div>';
+}
+function rateHTML(r, st) {
+  return '<small>RIGHT NOW</small><b id="rateTxt">' + ST[st].label.toUpperCase() + '</b>';
 }
 function renderDetail() {
-  const c = byId(state.sel), r = reading(c), st = statusOf(r.occ), ch = chartHTML(c), fav = state.favs.includes(c.id), alerted = state.alerts.includes(c.id);
+  const c = byId(state.sel), r = reading(c), st = statusOf(r.occ), fav = state.favs.includes(c.id), alerted = state.alerts.includes(c.id);
   const hasCam = state.track === 'vision' && (c.cam || state.labOv[c.id]);
-  const recent = reports.filter(x => x.court === c.id).sort((a, b) => b.ts - a.ts).slice(0, 5);
+  const recent = reports.filter(x => x.court === c.id).sort((a, b) => b.ts - a.ts).slice(0, 8);
+  const tab = state.tab || 'report', ch = chartHTML(c);
+  let body = '';
+  if (tab === 'report') {
+    body = (hasCam ? '<div class="cam" style="margin-bottom:12px"><canvas id="camMain"></canvas><span class="tag"><i></i>LIVE · ROBOFLOW</span><span class="hud" id="camHud"></span></div><div class="muted" style="margin:-4px 0 12px">' + (state.labOv[c.id] ? 'Lab frame. ' : 'Simulated feed. ') + 'Only the player count leaves the camera. No video is stored.</div>' : '') +
+      '<div class="kv"><div>Players<b id="dPlayers">' + (r.count != null ? r.count + '/' + r.cap : '≈' + (r.occ != null ? Math.round(r.occ * r.cap) : '–') + '/' + r.cap) + '</b></div><div>Wait<b id="dWait">' + (waitEst(r) ? '~' + waitEst(r) + ' min' : 'None') + '</b></div><div>Courts<b>' + c.courts + '</b></div><div>Hours<b style="font-size:12px">' + esc(c.hours.replace(' - ', '–')) + '</b></div></div>' +
+      '<div class="blk"><div class="h2">Busy hours · typical day</div><b>Quietest: ' + ch.best + '</b><div class="lock">' + ch.html + (state.premium ? '' : '<div class="veil"><div><b>Premium analytics</b><div class="muted" style="margin:4px 0 8px">Hourly traffic and trends</div><button class="btn primary sm" id="premBtn">Unlock · $3.99/mo</button></div></div>') + '</div></div>' +
+      '<div class="blk"><div class="h2">Amenities</div>' + c.amenities.map(a => '<span class="badge off" style="color:var(--ink2)">' + esc(a) + '</span>').join('') + '</div>';
+  } else if (tab === 'forecast') body = forecastHTML(c);
+  else body = '<div class="blk"><div class="h2">Recent check-ins</div>' + (recent.length ? recent.map(x => '<div class="rep"><span class="lv" style="background:' + LEVELS[x.level - 1].color + '">' + x.level + '</span><div style="flex:1"><b>' + LEVELS[x.level - 1].label + '</b> <span class="muted">by ' + esc(x.user) + '</span></div><span class="muted">' + ago(x.ts) + '</span></div>').join('') : '<div class="muted">No check-ins yet. Be the first.</div>') + '</div>';
   $('#panel').innerHTML =
-    '<button class="back" id="backBtn">← All courts</button>' +
-    '<div class="card"><div class="dh"><div class="ring" id="ring">' + ringSVG(r.occ, st) + '<b id="ringTxt">' + (r.occ == null ? '–' : Math.round(r.occ * 100) + '%') + '<small>full</small></b></div>' +
-    '<div><div style="font-size:19px;font-weight:800;font-family:\'Space Grotesk\',Inter,sans-serif">' + esc(c.name) + '</div><div class="muted">' + esc(c.address) + '</div><div class="row" style="margin-top:8px" id="dStat">' + pill(st) + srcBadge(r) + '</div></div></div>' +
-    '<div class="kv"><div>Players now<b id="dPlayers">' + (r.count != null ? r.count + ' / ' + r.cap : '≈ ' + (r.occ != null ? Math.round(r.occ * r.cap) : '–') + ' / ' + r.cap) + '</b></div><div>Est. wait<b id="dWait">' + (waitEst(r) ? '~' + waitEst(r) + ' min' : 'None') + '</b></div>' +
-    '<div>Courts<b>' + c.courts + ' · ' + SP[c.sport].name + '</b></div><div>Hours<b style="font-size:13px">' + esc(c.hours) + '</b></div></div>' +
-    '<div class="row" style="margin-top:12px"><button class="btn primary" style="flex:1" id="ciBtn">Check in</button><button class="btn" id="favBtn">' + (fav ? '♥ Saved' : '♡ Save') + '</button><button class="btn" id="alBtn">' + (alerted ? '🔔 Alert on' : '🔕 Alert me') + '</button></div></div>' +
-    (hasCam ? '<div class="card"><div class="h2" style="margin-top:0">Live vision' + (state.labOv[c.id] ? ' (lab frame)' : ' (simulated feed)') + '</div><div class="cam"><canvas id="camMain"></canvas><span class="tag"><i></i>LIVE · ROBOFLOW</span><span class="hud" id="camHud"></span></div><div class="muted" style="margin-top:6px">Only the player count leaves the camera. No video is stored or shown to users; detections are anonymous boxes.</div></div>' : '') +
-    '<div class="card"><div class="h2" style="margin-top:0">Busy hours</div><div class="row"><b>Quietest: ' + ch.best + '</b><span class="muted">· now highlighted</span></div>' +
-    '<div class="lock">' + ch.html + (state.premium ? '' : '<div class="veil"><div><b>Premium analytics</b><div class="muted" style="margin:4px 0 8px">Hourly traffic, trends and predictions</div><button class="btn primary sm" id="premBtn">Unlock · $3.99/mo</button></div></div>') + '</div></div>' +
-    '<div class="card"><div class="h2" style="margin-top:0">Recent check-ins</div>' + (recent.length ? recent.map(x => '<div class="rep"><span class="lv" style="background:' + LEVELS[x.level - 1].color + '">' + x.level + '</span><div style="flex:1"><b>' + LEVELS[x.level - 1].label + '</b> <span class="muted">by ' + esc(x.user) + '</span></div><span class="muted">' + ago(x.ts) + '</span></div>').join('') : '<div class="muted">No check-ins yet. Be the first.</div>') + '</div>';
-  if (hasCam) registerCam($('#camMain'), c.id, true);
+    '<button class="back" id="backBtn">‹ All courts</button>' +
+    '<div class="dtitle">' + esc(c.name) + '</div><div class="dsub">' + SP[c.sport].icon + ' ' + SP[c.sport].name + ' · ' + esc(c.address) + '</div>' +
+    '<div class="rate" id="rate" style="background:' + ST[st].color + '"><div id="rateL">' + rateHTML(r, st) + '</div><div class="rr" id="rateR">' + detailLine(r) + '</div></div>' +
+    '<div class="csrc" id="dStat" style="margin-top:8px">' + srcBadge(r) + '</div>' +
+    '<div class="tabs" role="tablist">' + [['report', 'Report'], ['forecast', 'Forecast'], ['checkins', 'Check-ins']].map(t => '<button role="tab" data-tab="' + t[0] + '" class="' + (tab === t[0] ? 'on' : '') + '">' + t[1] + '</button>').join('') + '</div>' + body +
+    '<div class="actbar"><button class="btn primary" id="ciBtn">Check in</button><button class="btn" id="favBtn" aria-label="Save court">' + (fav ? '♥ Saved' : '♡ Save') + '</button><button class="btn" id="alBtn" aria-label="Alert me when open">' + (alerted ? '🔔 On' : '🔕 Alert') + '</button></div>';
+  if (hasCam && tab === 'report') registerCam($('#camMain'), c.id, true);
 }
 function updateDetail() {
   const c = byId(state.sel); if (!c) return;
-  const r = reading(c), st = statusOf(r.occ);
-  const set = (id, h) => { const e = $(id); if (e) e.innerHTML = h; };
-  set('#dStat', pill(st) + srcBadge(r));
-  set('#dPlayers', r.count != null ? r.count + ' / ' + r.cap : '≈ ' + (r.occ != null ? Math.round(r.occ * r.cap) : '–') + ' / ' + r.cap);
+  const r = reading(c), st = statusOf(r.occ), set = (id, h) => { const e = $(id); if (e) e.innerHTML = h; };
+  const rt = $('#rate'); if (rt) rt.style.background = ST[st].color;
+  set('#rateL', rateHTML(r, st)); set('#rateR', detailLine(r)); set('#dStat', srcBadge(r));
+  set('#dPlayers', r.count != null ? r.count + '/' + r.cap : '≈' + (r.occ != null ? Math.round(r.occ * r.cap) : '–') + '/' + r.cap);
   set('#dWait', waitEst(r) ? '~' + waitEst(r) + ' min' : 'None');
-  const t = $('#ringTxt'); if (t) t.firstChild.textContent = r.occ == null ? '–' : Math.round(r.occ * 100) + '%';
-  const a = $('#ringArc'); if (a) { a.setAttribute('stroke', ST[st].color); const C = 2 * Math.PI * 40; a.setAttribute('stroke-dashoffset', C * (1 - (r.occ || 0))); }
 }
+const isMobile = () => window.matchMedia('(max-width:900px)').matches;
 function openCourt(id) {
-  state.sel = +id; cams.length = 0; go('explore', true); renderPanel(); updatePins();
-  const c = byId(id); map.flyTo([c.lat, c.lng], Math.max(map.getZoom(), 14), { duration: .6 });
+  state.sel = +id; state.tab = 'report'; cams.length = 0; $('#peek').innerHTML = '';
+  if (isMobile()) state.mob = 'list';
+  go('explore', true); updatePins();
+  const c = byId(id); if (!isMobile()) map.flyTo([c.lat, c.lng], Math.max(map.getZoom(), 14), { duration: .6 });
   $('#panel').scrollTop = 0;
 }
 function closeCourt() { state.sel = null; cams.length = 0; renderPanel(); updatePins(); }
+function pinClick(id) { if (isMobile() && state.mob === 'map') { $('#peek').innerHTML = cardHTML(byId(id)); } else openCourt(id); }
 
 /* ---------- camera canvases (simulated feeds) ---------- */
 const cams = [];  // {canvas, id, big}
@@ -465,7 +521,7 @@ function labFrame() {
 }
 function renderLab() {
   const v = $('#v-lab');
-  v.innerHTML = '<div class="page"><h1>Vision Lab</h1><p class="lead">This is how COURTS will read a real camera over a court. A frame goes to a Roboflow model, players are detected, counted against court capacity, and the result drives the map. Everything below runs on real Roboflow output; the camera wall further down is simulated until a camera is connected.</p>' +
+  v.innerHTML = '<div class="page"><h1>Cams &amp; Vision Lab</h1><p class="lead">This is how COURTS will read a real camera over a court. A frame goes to a Roboflow model, players are detected, counted against court capacity, and the result drives the map. Everything below runs on real Roboflow output; the camera wall further down is simulated until a camera is connected.</p>' +
     '<div class="pipe"><div class="st"><small>1 · Camera</small><b id="plFrame"></b><span class="muted" id="plFrameS"></span></div><div class="st"><small>2 · Roboflow model</small><b id="plModel"></b><span class="muted" id="plModelS"></span></div><div class="st"><small>3 · Players</small><b id="plCount"></b><span class="muted" id="plCountS"></span></div><div class="st"><small>4 · Occupancy</small><b id="plOcc"></b><span class="muted" id="plOccS"></span></div><div class="st"><small>5 · Map status</small><b id="plStat"></b><span class="muted">pushed to app</span></div></div>' +
     '<div class="grid2"><div><div class="card"><div class="row" style="margin-bottom:10px"><div id="labBig"></div></div><canvas id="labCanvas" class="labcanvas"></canvas>' +
     '<div class="h2">Source</div><div class="chips" id="srcChips"><button class="chip" data-src="sample">Sample photos</button><button class="chip" data-src="upload">Upload image</button><button class="chip" data-src="video">Upload video</button><button class="chip" data-src="webcam">Webcam</button></div>' +
@@ -505,13 +561,21 @@ function renderLab() {
 }
 
 /* ---------- navigation / refresh ---------- */
-function navItems() { return [['explore', '🗺️', 'Map'], ...(state.track === 'vision' ? [['lab', '🔬', 'Lab']] : []), ['alerts', '🔔', 'Alerts'], ['profile', '👤', 'Profile']]; }
+const ICONS = {
+  explore: '<path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"/><path d="M8 2v16M16 6v16"/>',
+  lab: '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>',
+  alerts: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
+  profile: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'
+};
+const svgIc = k => '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICONS[k] + '</svg>';
+function navItems() { return [['explore', 'Courts'], ...(state.track === 'vision' ? [['lab', 'Cams']] : []), ['alerts', 'Alerts'], ['profile', 'Profile']]; }
 function renderNav() {
   const items = navItems();
-  $('#navtop').innerHTML = items.map(i => '<button data-view="' + i[0] + '" class="' + (state.view === i[0] ? 'on' : '') + '">' + i[2] + '</button>').join('');
-  $('#navbot').innerHTML = items.map(i => '<button data-view="' + i[0] + '" class="' + (state.view === i[0] ? 'on' : '') + '"><span class="ic">' + i[1] + '</span>' + i[2] + '</button>').join('');
-  $$('#trackSeg button').forEach(b => b.classList.toggle('on', b.dataset.track === state.track));
+  $('#navtop').innerHTML = items.map(i => '<button data-view="' + i[0] + '" class="' + (state.view === i[0] ? 'on' : '') + '">' + i[1] + '</button>').join('');
+  $('#navbot').innerHTML = items.map(i => '<button data-view="' + i[0] + '" class="' + (state.view === i[0] ? 'on' : '') + '" aria-label="' + i[1] + '">' + svgIc(i[0]) + i[1] + '</button>').join('');
+  $$('#trackSeg button').forEach(b => { b.classList.toggle('on', b.dataset.track === state.track); b.setAttribute('aria-pressed', b.dataset.track === state.track); });
   document.body.dataset.track = state.track;
+  $('#trackHint').textContent = state.track === 'vision' ? 'Live player counts from cameras. Courts without a camera use check-ins.' : 'Status from recent player check-ins.';
   const lg = $('#legend'); if (lg && !lg.querySelector('.lgn')) lg.insertAdjacentHTML('beforeend', '<span class="lgn muted"></span>'); if (lg) lg.querySelector('.lgn').textContent = state.track === 'vision' ? 'Pin = players seen' : 'Pin = crowd level 1–5';
 }
 function go(view, keepSel) {
@@ -538,13 +602,18 @@ document.addEventListener('click', e => {
   let el;
   if ((el = t.closest('[data-fav]'))) { e.stopPropagation(); const id = +el.dataset.fav; state.favs = state.favs.includes(id) ? state.favs.filter(x => x !== id) : [...state.favs, id]; save(); refreshCards(); return; }
   if ((el = t.closest('[data-open]'))) { openCourt(el.dataset.open); return; }
+  if ((el = t.closest('#viewToggle'))) { state.mob = state.mob === 'map' ? 'list' : 'map'; $('#peek').innerHTML = ''; renderPanel(); if (state.mob === 'map') setTimeout(() => { map.invalidateSize(); fitAll(); }, 60); return; }
+  if ((el = t.closest('#fabCi'))) { openCheckIn(); return; }
   if ((el = t.closest('#trackSeg button'))) { setTrack(el.dataset.track); return; }
   if ((el = t.closest('[data-view]'))) { go(el.dataset.view); return; }
+  if ((el = t.closest('[data-tab]'))) { state.tab = el.dataset.tab; cams.length = 0; renderDetail(); $('#panel').scrollTop = 0; return; }
   if ((el = t.closest('[data-sport]'))) { state.sport = el.dataset.sport; renderPanel(); updatePins(); fitAll(); return; }
   if ((el = t.closest('[data-status]'))) { state.status = el.dataset.status; renderPanel(); updatePins(); return; }
   if ((el = t.closest('[data-alert]'))) { const id = +el.dataset.alert; state.alerts = state.alerts.includes(id) ? state.alerts.filter(x => x !== id) : [...state.alerts, id]; save(); renderAlerts(); return; }
   switch (t.id) {
     case 'backBtn': closeCourt(); break;
+    case 'viewToggle': state.mob = state.mob === 'map' ? 'list' : 'map'; $('#peek').innerHTML = ''; renderPanel(); if (state.mob === 'map') setTimeout(() => { map.invalidateSize(); fitAll(); }, 60); break;
+    case 'fabCi': openCheckIn(); break;
     case 'ciBtn': openCheckIn(state.sel); break;
     case 'addUpd': openCheckIn(); break;
     case 'favBtn': { const id = state.sel; state.favs = state.favs.includes(id) ? state.favs.filter(x => x !== id) : [...state.favs, id]; save(); renderDetail(); break; }
@@ -557,6 +626,7 @@ document.addEventListener('click', e => {
     case 'privLink': e.preventDefault(); openPrivacy(); break;
   }
 });
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches && e.target.matches('[data-open]')) openCourt(e.target.dataset.open); });
 document.addEventListener('input', e => { if (e.target.id === 'q') { state.q = e.target.value; refreshCards(); updatePins(); } });
 
 /* ---------- boot ---------- */
